@@ -1,0 +1,144 @@
+/* Copyright (c) 2017 FIRST. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted (subject to the limitations in the disclaimer below) provided that
+ * the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice, this list
+ * of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ *
+ * Neither the name of FIRST nor the names of its contributors may be used to endorse or
+ * promote products derived from this software without specific prior written permission.
+ *
+ * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
+ * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package org.firstinspires.ftc.teamcode.tuning;
+
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.arcrobotics.ftclib.command.CommandOpMode;
+import com.arcrobotics.ftclib.geometry.Rotation2d;
+import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveModuleState;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.firstinspires.ftc.teamcode.drive.SwerveDrive;
+
+
+/*
+ * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
+ * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
+ * of the FTC Driver Station. When a selection is made from the menu, the corresponding OpMode
+ * class is instantiated on the Robot Controller and executed.
+ *
+ * This particular OpMode just executes a basic Tank Drive Teleop for a two wheeled robot
+ * It includes all the skeletal structure that all linear OpModes contain.
+ *
+ * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
+ * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
+ */
+
+
+@TeleOp(name = "SwerveAngleTune", group = "Tune")
+//@Disabled
+@Config
+public class SwerveModulesTune extends CommandOpMode {
+
+    // Declare OpMode members.
+
+    public static double[] ANGLEKP = {.01, .01, .01, .01};
+    public static double[] ANGLEKI = {.0, .0, .0, .0};
+    public static double[] ANGLEKD = {.0, .0, .0, .0};
+
+
+    public static double[] DRIVEKP = {.01, .01, .01, .01};
+    public static double[] DRIVEKI = {.0, .0, .0, .0};
+    public static double[] DRIVEKD = {.0, .0, .0, .0};
+
+
+    SwerveDrive swerveDrive;
+
+    @Override
+    public void initialize() {
+
+    }
+
+    @Override
+    public void runOpMode() {
+
+        FtcDashboard dashboard = FtcDashboard.getInstance();
+
+        telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
+
+
+        // Wait for the game to start (driver presses START)
+        waitForStart();
+
+        while (opModeIsActive()) {
+            for (int i = 0; i < swerveDrive.modules.length; i++) {
+                if (swerveDrive.getModuleAngleKP(i) != ANGLEKP[i])
+                    swerveDrive.setModuleAngleKP(i, ANGLEKP[i]);
+
+                if (swerveDrive.getModuleAngleKI(i) != ANGLEKI[i]) {
+                    swerveDrive.setModuleAngleKI(i, ANGLEKI[i]);
+                }
+                if (swerveDrive.getModuleAngleKD(i) != ANGLEKD[i]) {
+                    swerveDrive.setModuleAngleKD(i, ANGLEKD[i]);
+                }
+                if (swerveDrive.getModuleDriveKP(i) != DRIVEKP[i]) {
+                    swerveDrive.setModuleDriveKP(i, DRIVEKP[i]);
+                }
+                if (swerveDrive.getModuleDriveKI(i) != DRIVEKI[i]) {
+                    swerveDrive.setModuleDriveKI(i, DRIVEKI[i]);
+                }
+                if (swerveDrive.getModuleDriveKD(i) != DRIVEKD[i]) {
+                    swerveDrive.setModuleDriveKD(i, DRIVEKD[i]);
+                }
+            }
+            double driveSpeed = gamepad1.left_stick_y;
+            if (gamepad1.a) {
+                swerveDrive.setModuleStates(new SwerveModuleState(driveSpeed, new Rotation2d(0)));
+            }
+            if (gamepad1.b) {
+                swerveDrive.setModuleStates(new SwerveModuleState(driveSpeed, new Rotation2d(Math.PI / 2)));
+            }
+            if (gamepad1.x) {
+                swerveDrive.setModuleStates(new SwerveModuleState(driveSpeed, new Rotation2d(Math.PI)));
+            }
+            if (gamepad1.y) {
+                swerveDrive.setModuleStates(new SwerveModuleState(driveSpeed, new Rotation2d(-Math.PI / 2)));
+            }
+
+            telemetry.addData("FLAngle", swerveDrive.modules[0].getState().angle);
+            telemetry.addData("FRAngle", swerveDrive.modules[1].getState().angle);
+            telemetry.addData("BLAngle", swerveDrive.modules[2].getState().angle);
+            telemetry.addData("BRAngle", swerveDrive.modules[3].getState().angle);
+            telemetry.update();
+
+
+        }
+    }
+
+}
+
+
+
+
+
+
+
