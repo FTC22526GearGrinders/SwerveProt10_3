@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.controller.PIDFController;
+import com.arcrobotics.ftclib.controller.wpilibcontroller.SimpleMotorFeedforward;
 import com.arcrobotics.ftclib.geometry.Rotation2d;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveModuleState;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -33,9 +34,14 @@ public class SwerveModule extends SubsystemBase {
     public double wheelDegs = 0;
     public double drivePower = 0;
     public double driveSpeedMetersPerSecond = 0;
+    private SimpleMotorFeedforward driveFeedforward;
+    private double acceleration;
+    private double lastSpeed;
 
     public SwerveModule(SwerveModuleConfig config, CommandOpMode opMode) {
         driveMotor = opMode.hardwareMap.get(DcMotorEx.class, config.driveMotorName);
+
+        createFeedForward(.1, 2, .1);
 
         angleServo = opMode.hardwareMap.get(CRServo.class, config.angleServoName);
         angleServo.setDirection(config.angleReverse);
@@ -58,58 +64,60 @@ public class SwerveModule extends SubsystemBase {
 
     }
 
+    public void createFeedForward(double ks, double kv, double ka) {
+        driveFeedforward = new SimpleMotorFeedforward(
+                ks,
+                kv,
+                ka);
+    }
+
+    public double getAngleKP() {
+        return angleController.getP();
+    }
+
     public void setAngleKP(double val) {
         angleController.setP(val);
     }
 
-    public double getAngleKP(){
-        return angleController.getP();
+    public double getAngleKI() {
+        return angleController.getI();
     }
 
     public void setAngleKI(double val) {
         angleController.setI(val);
     }
 
-    public double getAngleKI(){
-        return angleController.getI();
+    public double getAngleKD() {
+        return angleController.getD();
     }
-
 
     public void setAngleKD(double val) {
         angleController.setD(val);
     }
 
-    public double getAngleKD(){
-        return angleController.getD();
+    public double getDriveKP() {
+        return driveController.getP();
     }
-
 
     public void setDriveKP(double val) {
         driveController.setP(val);
     }
 
-    public double getDriveKP(){
-        return driveController.getP();
+    public double getDriveKI() {
+        return driveController.getI();
     }
 
     public void setDriveKI(double val) {
         driveController.setI(val);
     }
 
-    public double getDriveKI(){
-        return driveController.getI();
+    public double getDriveKD() {
+        return driveController.getD();
     }
-
 
     public void setDriveKD(double val) {
         driveController.setD(val);
     }
-
-    public double getDriveKD(){
-        return driveController.getD();
-    }
-
-
 
     public void setSpeedOpenLoop(SwerveModuleState state) {
         double speed = state.speedMetersPerSecond;
@@ -122,11 +130,13 @@ public class SwerveModule extends SubsystemBase {
     }
 
     public void setSpeedClosedLoop(SwerveModuleState state) {
-        double speed = state.speedMetersPerSecond;
-        driveSpeedMetersPerSecond = speed;
-        double pidOut = driveController.calculate(getWheelSpeedMPS(), speed);
-
-        driveMotor.setPower(pidOut);
+        acceleration = (state.speedMetersPerSecond - lastSpeed) / 0.020;
+        acceleration = Math.min(Math.max(acceleration, -5), 5);
+        double feedForward = driveFeedforward.calculate(
+                state.speedMetersPerSecond, acceleration);
+        lastSpeed = state.speedMetersPerSecond;
+        double pidOut = driveController.calculate(getWheelSpeedMPS(), state.speedMetersPerSecond);
+        driveMotor.setPower(pidOut + feedForward);
     }
 
     public void setAngle(SwerveModuleState state) {
@@ -184,9 +194,7 @@ public class SwerveModule extends SubsystemBase {
     }
 
     public double getWheelSpeedMPS() {
-        double motorTicksPerSecond = driveMotor.getVelocity();
-        double wheelRevolutionsPerSecond = motorTicksPerSecond / SwerveDriveConstants.TICKS_PER_REVOLUTION;
-        return Units.inchesToMeters(wheelRevolutionsPerSecond * SwerveDriveConstants.WHEEL_CIRCUMFERENCE_INCHES);
+        return driveMotor.getVelocity()/SwerveDriveConstants.TICKS_PER_METER;
     }
 
     @Override

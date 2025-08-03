@@ -28,8 +28,8 @@ import org.firstinspires.ftc.teamcode.utils.HolonomicDriveController;
 
 
 public class SwerveDrive extends SubsystemBase {
-    final ElapsedTime timer = new ElapsedTime();
     public final SwerveModule[] modules;
+    final ElapsedTime timer = new ElapsedTime();
     private final BHI260IMU imu;
     private final SwerveDriveOdometry m_odometry;
     public Telemetry telemetry;
@@ -112,7 +112,7 @@ public class SwerveDrive extends SubsystemBase {
         }
     }
 
-    public void setModuleStates(SwerveModuleState state){
+    public void setModuleStates(SwerveModuleState state) {
         for (SwerveModule module : modules) {
             module.setState(state);
         }
@@ -186,17 +186,12 @@ public class SwerveDrive extends SubsystemBase {
     }
 
     public void runTrajectory(Trajectory trajectory) {
-        if (!runoneshot) {
-            timer.reset();
-            runoneshot = true;
-        }
         setModuleOpenloop(true);
         double curTime = timer.time();
         Trajectory.State goal = trajectory.sample(curTime);
         ChassisSpeeds adjustedSpeeds = m_holonomicController.calculate(
                 getPose(), goal, goal.poseMeters.getRotation());
         SwerveModuleState[] moduleStates = SwerveDriveConstants.swerveKinematics.toSwerveModuleStates(adjustedSpeeds);
-
         for (SwerveModule module : modules) {
             module.setState(moduleStates[module.moduleNumber]);
         }
@@ -206,7 +201,7 @@ public class SwerveDrive extends SubsystemBase {
         return modules[module].getAngleKP();
     }
 
-    public void setModuleAngleKP(int module,double val) {
+    public void setModuleAngleKP(int module, double val) {
         modules[module].setAngleKP(val);
     }
 
@@ -214,7 +209,7 @@ public class SwerveDrive extends SubsystemBase {
         return modules[module].getAngleKI();
     }
 
-    public void setModuleAngleKI(int module,double val) {
+    public void setModuleAngleKI(int module, double val) {
         modules[module].setAngleKI(val);
     }
 
@@ -222,7 +217,7 @@ public class SwerveDrive extends SubsystemBase {
         return modules[module].getAngleKD();
     }
 
-    public void setModuleAngleKD(int module,double val) {
+    public void setModuleAngleKD(int module, double val) {
         modules[module].setAngleKD(val);
     }
 
@@ -230,7 +225,7 @@ public class SwerveDrive extends SubsystemBase {
         return modules[module].getDriveKP();
     }
 
-    public void setModuleDriveKP(int module,double val) {
+    public void setModuleDriveKP(int module, double val) {
         modules[module].setDriveKP(val);
     }
 
@@ -238,7 +233,7 @@ public class SwerveDrive extends SubsystemBase {
         return modules[module].getDriveKI();
     }
 
-    public void setModuleDriveKI(int module,double val) {
+    public void setModuleDriveKI(int module, double val) {
         modules[module].setDriveKI(val);
     }
 
@@ -246,10 +241,9 @@ public class SwerveDrive extends SubsystemBase {
         return modules[module].getDriveKD();
     }
 
-    public void setModuleDriveKD(int module,double val) {
+    public void setModuleDriveKD(int module, double val) {
         modules[module].setDriveKD(val);
     }
-
 
 
 }

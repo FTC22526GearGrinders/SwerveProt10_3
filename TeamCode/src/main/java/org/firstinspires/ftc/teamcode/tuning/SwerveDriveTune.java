@@ -57,19 +57,18 @@ import org.firstinspires.ftc.teamcode.drive.SwerveDrive;
 @TeleOp(name = "SwerveAngleTune", group = "Tune")
 //@Disabled
 @Config
-public class SwerveModulesTune extends CommandOpMode {
-
-    // Declare OpMode members.
-
-    public static double[] ANGLEKP = {.01, .01, .01, .01};
-    public static double[] ANGLEKI = {.0, .0, .0, .0};
-    public static double[] ANGLEKD = {.0, .0, .0, .0};
+public class SwerveDriveTune extends CommandOpMode {
 
 
     public static double[] DRIVEKP = {.01, .01, .01, .01};
     public static double[] DRIVEKI = {.0, .0, .0, .0};
     public static double[] DRIVEKD = {.0, .0, .0, .0};
 
+    public static boolean CHANGE_FEEDFORWARD = false;
+
+    public static double[] DRIVEKS = {.01, .01, .01, .01};
+    public static double[] DRIVEKV = {.0, .0, .0, .0};
+    public static double[] DRIVEKA = {.0, .0, .0, .0};
 
     SwerveDrive swerveDrive;
 
@@ -91,15 +90,7 @@ public class SwerveModulesTune extends CommandOpMode {
 
         while (opModeIsActive()) {
             for (int i = 0; i < swerveDrive.modules.length; i++) {
-                if (swerveDrive.getModuleAngleKP(i) != ANGLEKP[i])
-                    swerveDrive.setModuleAngleKP(i, ANGLEKP[i]);
 
-                if (swerveDrive.getModuleAngleKI(i) != ANGLEKI[i]) {
-                    swerveDrive.setModuleAngleKI(i, ANGLEKI[i]);
-                }
-                if (swerveDrive.getModuleAngleKD(i) != ANGLEKD[i]) {
-                    swerveDrive.setModuleAngleKD(i, ANGLEKD[i]);
-                }
                 if (swerveDrive.getModuleDriveKP(i) != DRIVEKP[i]) {
                     swerveDrive.setModuleDriveKP(i, DRIVEKP[i]);
                 }
@@ -109,6 +100,13 @@ public class SwerveModulesTune extends CommandOpMode {
                 if (swerveDrive.getModuleDriveKD(i) != DRIVEKD[i]) {
                     swerveDrive.setModuleDriveKD(i, DRIVEKD[i]);
                 }
+            }
+
+            if (CHANGE_FEEDFORWARD) {
+                for (int i = 0; i < swerveDrive.modules.length; i++) {
+                    swerveDrive.modules[i].createFeedForward(DRIVEKS[i], DRIVEKV[i], DRIVEKA[i]);
+                }
+                CHANGE_FEEDFORWARD=false;
             }
             double driveSpeed = gamepad1.left_stick_y;
             if (gamepad1.a) {
@@ -135,7 +133,6 @@ public class SwerveModulesTune extends CommandOpMode {
     }
 
 }
-
 
 
 

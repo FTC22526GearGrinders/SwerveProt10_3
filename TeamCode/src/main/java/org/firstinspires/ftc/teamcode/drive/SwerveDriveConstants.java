@@ -11,7 +11,7 @@ public final class SwerveDriveConstants {
 
     public static final double maxMotorRevsPerSecond = 1150 / 60;
     public static final double TICKS_PER_INCH = TICKS_PER_REVOLUTION / WHEEL_CIRCUMFERENCE_INCHES;//approx 29
-    public static final double TICKS_PER_METER = TICKS_PER_INCH*39.37;//1160
+    public static final double TICKS_PER_METER = TICKS_PER_INCH * 39.37;//1160
 
 
     public static final double maxSpeedMetersPerSec = Units.inchesToMeters(maxMotorRevsPerSecond * WHEEL_CIRCUMFERENCE_INCHES);//approx 5 mps
