@@ -32,14 +32,14 @@ package org.firstinspires.ftc.teamcode.tuning;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.command.CommandOpMode;
-import com.arcrobotics.ftclib.geometry.Rotation2d;
-import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveModuleState;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.drive.SwerveDrive;
-import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
+import org.firstinspires.ftc.teamcode.utils.Drawing;
+import org.firstinspires.ftc.teamcode.utils.Trajectories;
 
 
 /*
@@ -56,20 +56,25 @@ import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
  */
 
 
-@TeleOp(name = "SwerveDriveTune", group = "Tune")
+@TeleOp(name = "TrajectoryTune", group = "Tune")
 //@Disabled
 @Config
-public class SwerveDriveTune extends CommandOpMode {
+public class TrajectoryTune extends CommandOpMode {
 
 
-    public static double[] DRIVEKP = {.01, .01, .01, .01};
-    public static double[] DRIVEKI = {.0, .0, .0, .0};
-    public static double[] DRIVEKD = {.0, .0, .0, .0};
+    public static double XKP = .01;
+    public static double XKI = .01;
+    public static double XKD = .01;
 
-    public static double[] DRIVEKS = {.01, .01, .01, .01};
-    public static double[] DRIVEKV = {.0, .0, .0, .0};
-    public static double[] DRIVEKA = {.0, .0, .0, .0};
+    public static double YKP = .01;
+    public static double YKI = .0;
+    public static double YKD = .0;
 
+    public static double THETAKP = .01;
+    public static double THETAKI = .0;
+    public static double THETAKD = .0;
+
+    Trajectories m_trajectories;
     SwerveDrive swerveDrive;
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
@@ -91,22 +96,25 @@ public class SwerveDriveTune extends CommandOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
+
+            TelemetryPacket packet = new TelemetryPacket();
+            packet.fieldOverlay().setStroke("#3F51B5");
+            Drawing.drawRobot(packet.fieldOverlay(), swerveDrive.getPose());
+            FtcDashboard.getInstance().sendTelemetryPacket(packet);
+            telemetry.update();
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
 
             if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
-                for (int i = 0; i < swerveDrive.modules.length; i++) {
-                    swerveDrive.setModuleDriveKP(i, DRIVEKP[i]);
-                    swerveDrive.setModuleDriveKI(i, DRIVEKI[i]);
-                    swerveDrive.setModuleDriveKD(i, DRIVEKD[i]);
-                }
+                swerveDrive.setXControllerKvals(XKP, XKI, XKD);
             }
             if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) {
-                for (int i = 0; i < swerveDrive.modules.length; i++) {
-                    swerveDrive.modules[i].createFeedForward(DRIVEKS[i], DRIVEKV[i], DRIVEKA[i]);
-                }
+                swerveDrive.setYControllerKvals(XKP, XKI, XKD);
             }
-            double driveSpeed = gamepad1.left_stick_y * SwerveDriveConstants.maxSpeedMetersPerSec;
+            if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left) {
+                swerveDrive.setThetaControllerKvals(XKP, XKI, XKD);
+            }
+
 
             if (currentGamepad1.dpad_up) {
                 swerveDrive.setModuleOpenloop(true);
@@ -118,19 +126,18 @@ public class SwerveDriveTune extends CommandOpMode {
 
 
             if (currentGamepad1.a && !previousGamepad1.a) {
-                swerveDrive.setModuleStates(new SwerveModuleState(driveSpeed, new Rotation2d(0)));
+                swerveDrive.runTrajectory(m_trajectories.leftStart);
             }
             if (currentGamepad1.b && !previousGamepad1.b) {
-                swerveDrive.setModuleStates(new SwerveModuleState(driveSpeed, new Rotation2d(0)));
+                ; swerveDrive.runTrajectory(m_trajectories.leftStart);
             }
             if (currentGamepad1.x && !previousGamepad1.x) {
-                swerveDrive.setModuleStates(new SwerveModuleState(driveSpeed, new Rotation2d(0)));
+                swerveDrive.runTrajectory(m_trajectories.leftStart);
             }
             if (currentGamepad1.y && !previousGamepad1.y) {
-                swerveDrive.setModuleStates(new SwerveModuleState(driveSpeed, new Rotation2d(0)));
+                swerveDrive.runTrajectory(m_trajectories.leftStart);
             }
 
-            telemetry.addData("CommandVel", driveSpeed);
             telemetry.addData("OpenLoop", swerveDrive.openLoop);
             telemetry.addData("FLDriveVel", swerveDrive.modules[0].getState().speedMetersPerSecond);
             telemetry.addData("FRDriveVel", swerveDrive.modules[1].getState().speedMetersPerSecond);

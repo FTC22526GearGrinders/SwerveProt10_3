@@ -13,10 +13,9 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.utils.Units;
+
 
 public class SwerveModule extends SubsystemBase {
-
 
     private final PIDFController driveController = new PIDFController(0.01, 0, 0, 0);
     private final CustomPIDFController angleController = new CustomPIDFController(.01, 0., 0., 0);
@@ -32,11 +31,10 @@ public class SwerveModule extends SubsystemBase {
     public double setpoint = 0;
     public double anglePID = 0;
     public double wheelDegs = 0;
-    public double drivePower = 0;
     public double driveSpeedMetersPerSecond = 0;
     private SimpleMotorFeedforward driveFeedforward;
-    private double acceleration;
     private double lastSpeed;
+    private double drivePower;
 
     public SwerveModule(SwerveModuleConfig config, CommandOpMode opMode) {
         driveMotor = opMode.hardwareMap.get(DcMotorEx.class, config.driveMotorName);
@@ -126,11 +124,11 @@ public class SwerveModule extends SubsystemBase {
         if (power > 1) power = 1;
         if (power < -1) power = -1;
         drivePower = power;
-        driveMotor.setPower(power); //-1.0 to 1.0
+        driveMotor.setPower(drivePower); //-1.0 to 1.0
     }
 
     public void setSpeedClosedLoop(SwerveModuleState state) {
-        acceleration = (state.speedMetersPerSecond - lastSpeed) / 0.020;
+        double acceleration = (state.speedMetersPerSecond - lastSpeed) / 0.020;
         acceleration = Math.min(Math.max(acceleration, -5), 5);
         double feedForward = driveFeedforward.calculate(
                 state.speedMetersPerSecond, acceleration);
@@ -194,7 +192,7 @@ public class SwerveModule extends SubsystemBase {
     }
 
     public double getWheelSpeedMPS() {
-        return driveMotor.getVelocity()/SwerveDriveConstants.TICKS_PER_METER;
+        return driveMotor.getVelocity() / SwerveDriveConstants.TICKS_PER_METER;
     }
 
     @Override
@@ -203,7 +201,7 @@ public class SwerveModule extends SubsystemBase {
             telemetry.addData("CurrentDegrees" + moduleNumber, getWheelAngleDeg());
 //        telemetry.addData("SetPoint" + moduleNumber, setpoint);
 //        telemetry.addData("PIDOut" + moduleNumber, anglePID);
-//        telemetry.addData("DrivePower" + moduleNumber, drivePower);
+            telemetry.addData("DrivePower" + moduleNumber, drivePower);
             telemetry.addData("DriveSpeed" + moduleNumber, driveSpeedMetersPerSecond);
             telemetry.addData("DrivePosition" + moduleNumber, getWheelPosition());
             telemetry.addData("DriveTicks" + moduleNumber, driveMotor.getCurrentPosition());

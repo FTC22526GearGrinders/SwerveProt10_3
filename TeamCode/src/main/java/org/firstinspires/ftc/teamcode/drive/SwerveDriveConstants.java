@@ -15,6 +15,7 @@ public final class SwerveDriveConstants {
 
 
     public static final double maxSpeedMetersPerSec = Units.inchesToMeters(maxMotorRevsPerSecond * WHEEL_CIRCUMFERENCE_INCHES);//approx 5 mps
+    public static final double maxAccelerationMPSPS = maxSpeedMetersPerSec*2;
 
     public static final double maxRadiansPerSecond = Math.PI / (.84); //servo specs .14 secs per 60 degrees 4.8 volts approx 3.5
 

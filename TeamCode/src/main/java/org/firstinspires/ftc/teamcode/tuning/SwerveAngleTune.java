@@ -36,6 +36,7 @@ import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.geometry.Rotation2d;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveModuleState;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.drive.SwerveDrive;
 import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
@@ -77,7 +78,8 @@ public class SwerveAngleTune extends CommandOpMode {
     public void runOpMode() {
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
-
+        Gamepad currentGamepad1 = new Gamepad();
+        Gamepad previousGamepad1 = new Gamepad();
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
 
 
@@ -85,36 +87,39 @@ public class SwerveAngleTune extends CommandOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            for (int i = 0; i < swerveDrive.modules.length; i++) {
-                if (swerveDrive.getModuleAngleKP(i) != ANGLEKP[i])
-                    swerveDrive.setModuleAngleKP(i, ANGLEKP[i]);
+            previousGamepad1.copy(currentGamepad1);
+            currentGamepad1.copy(gamepad1);
 
-                if (swerveDrive.getModuleAngleKI(i) != ANGLEKI[i]) {
+            if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
+                for (int i = 0; i < swerveDrive.modules.length; i++) {
+                    swerveDrive.setModuleAngleKP(i, ANGLEKP[i]);
                     swerveDrive.setModuleAngleKI(i, ANGLEKI[i]);
-                }
-                if (swerveDrive.getModuleAngleKD(i) != ANGLEKD[i]) {
                     swerveDrive.setModuleAngleKD(i, ANGLEKD[i]);
                 }
-
             }
             double driveSpeed = gamepad1.left_stick_y * SwerveDriveConstants.maxSpeedMetersPerSec;
-            if (gamepad1.a) {
+            if (currentGamepad1.a && !previousGamepad1.a) {
                 swerveDrive.setModuleStates(new SwerveModuleState(driveSpeed, new Rotation2d(0)));
             }
-            if (gamepad1.b) {
+            if (currentGamepad1.b && !previousGamepad1.b) {
                 swerveDrive.setModuleStates(new SwerveModuleState(driveSpeed, new Rotation2d(Math.PI / 2)));
             }
-            if (gamepad1.x) {
+            if (currentGamepad1.x && !previousGamepad1.x) {
                 swerveDrive.setModuleStates(new SwerveModuleState(driveSpeed, new Rotation2d(Math.PI)));
             }
-            if (gamepad1.y) {
+            if (currentGamepad1.y && !previousGamepad1.y) {
                 swerveDrive.setModuleStates(new SwerveModuleState(driveSpeed, new Rotation2d(-Math.PI / 2)));
             }
 
-            telemetry.addData("FLAngle", swerveDrive.modules[0].getState().angle);
-            telemetry.addData("FRAngle", swerveDrive.modules[1].getState().angle);
-            telemetry.addData("BLAngle", swerveDrive.modules[2].getState().angle);
-            telemetry.addData("BRAngle", swerveDrive.modules[3].getState().angle);
+            telemetry.addData("FLAnglePos", swerveDrive.modules[0].getState().angle);
+            telemetry.addData("FRAnglePos", swerveDrive.modules[1].getState().angle);
+            telemetry.addData("BLAnglePos", swerveDrive.modules[2].getState().angle);
+            telemetry.addData("BRAnglePos", swerveDrive.modules[3].getState().angle);
+            telemetry.addData("FLAngleVel", swerveDrive.modules[0].getState().speedMetersPerSecond);
+            telemetry.addData("FRAngleVel", swerveDrive.modules[1].getState().speedMetersPerSecond);
+            telemetry.addData("BLAngleVel", swerveDrive.modules[2].getState().speedMetersPerSecond);
+            telemetry.addData("BRAngleVel", swerveDrive.modules[3].getState().speedMetersPerSecond);
+
             telemetry.update();
 
 
