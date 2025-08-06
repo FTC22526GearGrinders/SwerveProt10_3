@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.tests;
+package org.firstinspires.ftc.teamcode.opmodes;
 
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.drive.SwerveDrive;
 
 @TeleOp(name = "SimpleTrajTest", group = "Test")
 @Config
-public class SimpleTrajectoryTest extends CommandOpMode {
+public class SimpleTrajectoryOpmode extends CommandOpMode {
 
     public Telemetry m_telemetry;
     SwerveDrive swerveDrive;
@@ -34,9 +34,9 @@ public class SimpleTrajectoryTest extends CommandOpMode {
         traj = extratraj.generateTrajectory();
         waitForStart();
         while (opModeIsActive()) {
-            run();
+            run();m_telemetry.update();
             swerveDrive.runTrajectory(traj);
-            m_telemetry.update();
+
         }
     }
 }

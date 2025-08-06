@@ -67,8 +67,10 @@ public class SwerveDriveTune extends CommandOpMode {
     public static double[] DRIVEKD = {.0, .0, .0, .0};
 
     public static double[] DRIVEKS = {.01, .01, .01, .01};
-    public static double[] DRIVEKV = {.0, .0, .0, .0};
+    public static double[] DRIVEKV = {SwerveDriveConstants.calcKV, SwerveDriveConstants.calcKV, SwerveDriveConstants.calcKV, SwerveDriveConstants.calcKV};
     public static double[] DRIVEKA = {.0, .0, .0, .0};
+
+    public static boolean ALL_SAME = true;
 
     SwerveDrive swerveDrive;
     Gamepad currentGamepad1 = new Gamepad();
@@ -95,6 +97,13 @@ public class SwerveDriveTune extends CommandOpMode {
             currentGamepad1.copy(gamepad1);
 
             if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
+                if (ALL_SAME) {
+                    for (int i = 1; i < swerveDrive.modules.length; i++) {
+                        DRIVEKP[i] = DRIVEKP[0];
+                        DRIVEKI[i] = DRIVEKI[0];
+                        DRIVEKD[i] = DRIVEKD[0];
+                    }
+                }
                 for (int i = 0; i < swerveDrive.modules.length; i++) {
                     swerveDrive.setModuleDriveKP(i, DRIVEKP[i]);
                     swerveDrive.setModuleDriveKI(i, DRIVEKI[i]);
@@ -102,6 +111,13 @@ public class SwerveDriveTune extends CommandOpMode {
                 }
             }
             if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) {
+                if (ALL_SAME) {
+                    for (int i = 1; i < swerveDrive.modules.length; i++) {
+                        DRIVEKS[i] = DRIVEKS[0];
+                        DRIVEKV[i] = DRIVEKV[0];
+                        DRIVEKA[i] = DRIVEKA[0];
+                    }
+                }
                 for (int i = 0; i < swerveDrive.modules.length; i++) {
                     swerveDrive.modules[i].createFeedForward(DRIVEKS[i], DRIVEKV[i], DRIVEKA[i]);
                 }

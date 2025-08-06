@@ -39,7 +39,7 @@ public class SwerveModule extends SubsystemBase {
     public SwerveModule(SwerveModuleConfig config, CommandOpMode opMode) {
         driveMotor = opMode.hardwareMap.get(DcMotorEx.class, config.driveMotorName);
 
-        createFeedForward(.1, 2, .1);
+        createFeedForward(.1, SwerveDriveConstants.calcKV, 0);
 
         angleServo = opMode.hardwareMap.get(CRServo.class, config.angleServoName);
         angleServo.setDirection(config.angleReverse);

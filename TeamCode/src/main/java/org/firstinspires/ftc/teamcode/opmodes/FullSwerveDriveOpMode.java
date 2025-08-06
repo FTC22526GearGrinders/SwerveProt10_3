@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.tests;
+package org.firstinspires.ftc.teamcode.opmodes;
 
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -18,7 +18,7 @@ import Ori.Coval.Logging.Logger.KoalaLog;
 
 @TeleOp(name = "FullSwerveTest", group = "Test")
 @Config
-public class FullSwerveDriveTest extends CommandOpMode {
+public class FullSwerveDriveOpMode extends CommandOpMode {
 
     public Telemetry telemetry;
     SwerveDrive swerveDrive;

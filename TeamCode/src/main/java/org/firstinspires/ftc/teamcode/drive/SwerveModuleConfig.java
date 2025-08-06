@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.drive;
 
-import com.arcrobotics.ftclib.controller.PIDFController;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 public class SwerveModuleConfig {
@@ -9,7 +8,7 @@ public class SwerveModuleConfig {
     public final double offset;
 
     public final int moduleNumber;
-    public PIDFController drivePIDFController, anglePIDFController;
+
     public DcMotorSimple.Direction angleReverse;
 
     public SwerveModuleConfig(int modNumber, String driveMotorName, String angleServoName, String absoluteEncoderName, double offset, DcMotorSimple.Direction angleReverse) {

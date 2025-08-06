@@ -67,6 +67,7 @@ public class SwerveAngleTune extends CommandOpMode {
     public static double[] ANGLEKI = {.0, .0, .0, .0};
     public static double[] ANGLEKD = {.0, .0, .0, .0};
 
+    public static boolean ALL_SAME = true;
     SwerveDrive swerveDrive;
 
     @Override
@@ -90,14 +91,24 @@ public class SwerveAngleTune extends CommandOpMode {
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
 
+
             if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
+                if (ALL_SAME) {
+                    for (int i = 1; i < swerveDrive.modules.length; i++) {
+                        ANGLEKP[i] = ANGLEKP[0];
+                        ANGLEKI[i] = ANGLEKI[0];
+                        ANGLEKD[i] = ANGLEKD[0];
+                    }
+                }
                 for (int i = 0; i < swerveDrive.modules.length; i++) {
                     swerveDrive.setModuleAngleKP(i, ANGLEKP[i]);
                     swerveDrive.setModuleAngleKI(i, ANGLEKI[i]);
                     swerveDrive.setModuleAngleKD(i, ANGLEKD[i]);
                 }
             }
+
             double driveSpeed = gamepad1.left_stick_y * SwerveDriveConstants.maxSpeedMetersPerSec;
+
             if (currentGamepad1.a && !previousGamepad1.a) {
                 swerveDrive.setModuleStates(new SwerveModuleState(driveSpeed, new Rotation2d(0)));
             }

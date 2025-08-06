@@ -109,10 +109,10 @@ public class TrajectoryTune extends CommandOpMode {
                 swerveDrive.setXControllerKvals(XKP, XKI, XKD);
             }
             if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) {
-                swerveDrive.setYControllerKvals(XKP, XKI, XKD);
+                swerveDrive.setYControllerKvals(YKP, YKI, YKD);
             }
             if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left) {
-                swerveDrive.setThetaControllerKvals(XKP, XKI, XKD);
+                swerveDrive.setThetaControllerKvals(THETAKP, THETAKI, THETAKD);
             }
 
 
@@ -139,10 +139,14 @@ public class TrajectoryTune extends CommandOpMode {
             }
 
             telemetry.addData("OpenLoop", swerveDrive.openLoop);
-            telemetry.addData("FLDriveVel", swerveDrive.modules[0].getState().speedMetersPerSecond);
-            telemetry.addData("FRDriveVel", swerveDrive.modules[1].getState().speedMetersPerSecond);
-            telemetry.addData("BLDriveVel", swerveDrive.modules[2].getState().speedMetersPerSecond);
-            telemetry.addData("BRDriveVel", swerveDrive.modules[3].getState().speedMetersPerSecond);
+            telemetry.addData("FLAnglePos", swerveDrive.modules[0].getState().angle);
+            telemetry.addData("FRAnglePos", swerveDrive.modules[1].getState().angle);
+            telemetry.addData("BLAnglePos", swerveDrive.modules[2].getState().angle);
+            telemetry.addData("BRAnglePos", swerveDrive.modules[3].getState().angle);
+            telemetry.addData("FLAngleVel", swerveDrive.modules[0].getState().speedMetersPerSecond);
+            telemetry.addData("FRAngleVel", swerveDrive.modules[1].getState().speedMetersPerSecond);
+            telemetry.addData("BLAngleVel", swerveDrive.modules[2].getState().speedMetersPerSecond);
+            telemetry.addData("BRAngleVel", swerveDrive.modules[3].getState().speedMetersPerSecond);
             telemetry.update();
 
 

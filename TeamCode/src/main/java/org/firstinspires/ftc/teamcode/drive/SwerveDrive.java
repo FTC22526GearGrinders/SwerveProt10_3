@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.drive;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.controller.PIDController;
@@ -25,7 +24,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.teamcode.utils.Drawing;
 import org.firstinspires.ftc.teamcode.utils.HolonomicDriveController;
 
 import Ori.Coval.Logging.AutoLog;
@@ -40,16 +38,15 @@ public class SwerveDrive extends SubsystemBase {
     public boolean openLoop;
     TrapezoidProfile.Constraints constraints = new TrapezoidProfile.Constraints(
             1, 2);
-    private PIDController xpidController = new PIDController(.01, 0, 0);
-    private PIDController ypidController = new PIDController(.01, 0, 0);
-    private ProfiledPIDController thetapidController = new ProfiledPIDController(.01, 0, 0, constraints);
+    private final PIDController xpidController = new PIDController(.01, 0, 0);
+    private final PIDController ypidController = new PIDController(.01, 0, 0);
+    private final ProfiledPIDController thetapidController = new ProfiledPIDController(.01, 0, 0, constraints);
     private final HolonomicDriveController m_holonomicController
             = new HolonomicDriveController(
             xpidController,
             ypidController,
             thetapidController);
 
-    private boolean runoneshot;
     private Pose2d robotPose = new Pose2d();
 
     public SwerveDrive(CommandOpMode opMode) {
@@ -202,11 +199,6 @@ public class SwerveDrive extends SubsystemBase {
         setModuleOpenloop(false);
         double curTime = timer.time();
         Trajectory.State goal = trajectory.sample(curTime);
-//        TelemetryPacket packet = new TelemetryPacket();
-//        packet.fieldOverlay().setStroke("#3F51B5");
-//        Drawing.drawRobot(packet.fieldOverlay(), goal.poseMeters);
-//        FtcDashboard.getInstance().sendTelemetryPacket(packet);
-//        telemetry.update();
         ChassisSpeeds adjustedSpeeds = m_holonomicController.calculate(
                 getPose(), goal, goal.poseMeters.getRotation());
         SwerveModuleState[] moduleStates = SwerveDriveConstants.swerveKinematics.toSwerveModuleStates(adjustedSpeeds);
@@ -266,9 +258,11 @@ public class SwerveDrive extends SubsystemBase {
     public void setXControllerKvals(double pval, double ival, double dval) {
         xpidController.setPID(pval, ival, dval);
     }
+
     public void setYControllerKvals(double pval, double ival, double dval) {
         ypidController.setPID(pval, ival, dval);
     }
+
     public void setThetaControllerKvals(double pval, double ival, double dval) {
         thetapidController.setPID(pval, ival, dval);
     }
