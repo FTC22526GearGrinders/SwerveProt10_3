@@ -62,11 +62,11 @@ import org.firstinspires.ftc.teamcode.utils.Trajectories;
 public class TrajectoryTune extends CommandOpMode {
 
 
-    public static double XKP = .01;
+    public static double XKP = 1.;
     public static double XKI = .01;
     public static double XKD = .01;
 
-    public static double YKP = .01;
+    public static double YKP = 1.;
     public static double YKI = .0;
     public static double YKD = .0;
 
@@ -81,15 +81,16 @@ public class TrajectoryTune extends CommandOpMode {
 
     @Override
     public void initialize() {
+        swerveDrive = new SwerveDrive(this);
+
+        FtcDashboard dashboard = FtcDashboard.getInstance();
+
+        telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
 
     }
 
     @Override
     public void runOpMode() {
-
-        FtcDashboard dashboard = FtcDashboard.getInstance();
-
-        telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
 
 
         // Wait for the game to start (driver presses START)
@@ -125,11 +126,12 @@ public class TrajectoryTune extends CommandOpMode {
             }
 
 
-            if (currentGamepad1.a && !previousGamepad1.a) {
+            if (currentGamepad1.a)
                 swerveDrive.runTrajectory(m_trajectories.leftStart);
-            }
+
             if (currentGamepad1.b && !previousGamepad1.b) {
-                ; swerveDrive.runTrajectory(m_trajectories.leftStart);
+
+                swerveDrive.runTrajectory(m_trajectories.leftStart);
             }
             if (currentGamepad1.x && !previousGamepad1.x) {
                 swerveDrive.runTrajectory(m_trajectories.leftStart);

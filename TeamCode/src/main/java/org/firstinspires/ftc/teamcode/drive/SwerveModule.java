@@ -4,20 +4,23 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.command.SubsystemBase;
+import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.controller.wpilibcontroller.SimpleMotorFeedforward;
 import com.arcrobotics.ftclib.geometry.Rotation2d;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveModuleState;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 
 public class SwerveModule extends SubsystemBase {
 
-    private final PIDFController driveController = new PIDFController(0.01, 0, 0, 0);
+    private final PIDController driveController = new PIDController(0.01, 0, 0);
     private final CustomPIDFController angleController = new CustomPIDFController(.01, 0., 0., 0);
     private final boolean showTelemetry = true;
     public CRServo angleServo;
@@ -32,28 +35,30 @@ public class SwerveModule extends SubsystemBase {
     public double anglePID = 0;
     public double wheelDegs = 0;
     public double driveSpeedMetersPerSecond = 0;
+    public double pidout;
+    public double feedForward;
     private SimpleMotorFeedforward driveFeedforward;
     private double lastSpeed;
-    private double drivePower;
 
     public SwerveModule(SwerveModuleConfig config, CommandOpMode opMode) {
         driveMotor = opMode.hardwareMap.get(DcMotorEx.class, config.driveMotorName);
 
-        createFeedForward(.1, SwerveDriveConstants.calcKV, 0);
+        driveMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        driveMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        createFeedForward(0, SwerveDriveConstants.calcKV, 0);
 
         angleServo = opMode.hardwareMap.get(CRServo.class, config.angleServoName);
+
         angleServo.setDirection(config.angleReverse);
 
         servoPotentiometer = opMode.hardwareMap.get(AnalogInput.class, config.absoluteEncoderName);
 
         angleOffset = config.offset;
 
-
-        //angleController = config.anglePIDFController;
-
         angleController.enableContinuousInput(-180, 180);
-        angleController.setTolerance(3);
 
+        angleController.setTolerance(3);
 
         moduleNumber = config.moduleNumber;
 
@@ -123,17 +128,19 @@ public class SwerveModule extends SubsystemBase {
         double power = speed / SwerveDriveConstants.maxSpeedMetersPerSec;
         if (power > 1) power = 1;
         if (power < -1) power = -1;
-        drivePower = power;
-        driveMotor.setPower(drivePower); //-1.0 to 1.0
+        driveMotor.setPower(power); //-1.0 to 1.0
     }
 
     public void setSpeedClosedLoop(SwerveModuleState state) {
+        driveSpeedMetersPerSecond = state.speedMetersPerSecond;
         double acceleration = (state.speedMetersPerSecond - lastSpeed) / 0.020;
         acceleration = Math.min(Math.max(acceleration, -5), 5);
-        double feedForward = driveFeedforward.calculate(
+        feedForward = driveFeedforward.calculate(
                 state.speedMetersPerSecond, acceleration);
+        feedForward /= (SwerveDriveConstants.maxSpeedMetersPerSec * 12);
         lastSpeed = state.speedMetersPerSecond;
         double pidOut = driveController.calculate(getWheelSpeedMPS(), state.speedMetersPerSecond);
+
         driveMotor.setPower(pidOut + feedForward);
     }
 
@@ -141,10 +148,12 @@ public class SwerveModule extends SubsystemBase {
         angleSetPoint = state.angle.getDegrees();
 
         setpoint = angleSetPoint;
+
         angleController.setSetPoint(setpoint);
 
         wheelDegs = getWheelAngleDeg();
-        double pidout = angleController.calculate(wheelDegs);
+
+        pidout = angleController.calculate(wheelDegs, setpoint);
 
         if (pidout > 1) pidout = 1;
         if (pidout < -1) pidout = -1;
@@ -162,8 +171,6 @@ public class SwerveModule extends SubsystemBase {
 
     public void setState(SwerveModuleState state) {
         SwerveModuleState newState = SwerveModuleState.optimize(state, new Rotation2d(getWheelAngleRad()));
-
-        setSpeedOpenLoop(newState);
 
         setAngle(newState);
 
@@ -195,13 +202,17 @@ public class SwerveModule extends SubsystemBase {
         return driveMotor.getVelocity() / SwerveDriveConstants.TICKS_PER_METER;
     }
 
+    public double getDrivePower() {
+        return driveMotor.getPower();
+    }
+
     @Override
     public void periodic() {
         if (showTelemetry) {
             telemetry.addData("CurrentDegrees" + moduleNumber, getWheelAngleDeg());
 //        telemetry.addData("SetPoint" + moduleNumber, setpoint);
 //        telemetry.addData("PIDOut" + moduleNumber, anglePID);
-            telemetry.addData("DrivePower" + moduleNumber, drivePower);
+            telemetry.addData("DrivePower" + moduleNumber, getDrivePower());
             telemetry.addData("DriveSpeed" + moduleNumber, driveSpeedMetersPerSecond);
             telemetry.addData("DrivePosition" + moduleNumber, getWheelPosition());
             telemetry.addData("DriveTicks" + moduleNumber, driveMotor.getCurrentPosition());
@@ -211,4 +222,6 @@ public class SwerveModule extends SubsystemBase {
             angleServo.setPower(0);
         }
     }
+
+
 }

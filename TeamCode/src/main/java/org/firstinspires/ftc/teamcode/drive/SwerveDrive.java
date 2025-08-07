@@ -26,9 +26,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.utils.HolonomicDriveController;
 
-import Ori.Coval.Logging.AutoLog;
 
-@AutoLog
+
 public class SwerveDrive extends SubsystemBase {
     public final SwerveModule[] modules;
     final ElapsedTime timer = new ElapsedTime();
@@ -265,6 +264,14 @@ public class SwerveDrive extends SubsystemBase {
 
     public void setThetaControllerKvals(double pval, double ival, double dval) {
         thetapidController.setPID(pval, ival, dval);
+    }
+
+    public void showAngleValues(){
+        telemetry.addData("FLAngle",911);
+
+        telemetry.update();
+
+
     }
 
 }

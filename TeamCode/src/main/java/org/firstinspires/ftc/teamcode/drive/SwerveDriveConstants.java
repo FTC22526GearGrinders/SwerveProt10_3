@@ -7,6 +7,8 @@ import org.firstinspires.ftc.teamcode.utils.Units;
 
 public final class SwerveDriveConstants {
     public static final double WHEEL_CIRCUMFERENCE_INCHES = 1.53 * Math.PI;
+    public static final double WHEEL_CIRCUMFERENCE_METERS = Units.inchesToMeters(1.53 * Math.PI);
+
     public static final double TICKS_PER_REVOLUTION = 145.1;
 
     public static final double maxMotorRevsPerSecond = 1150. / 60.;
@@ -14,7 +16,7 @@ public final class SwerveDriveConstants {
     public static final double TICKS_PER_METER = TICKS_PER_INCH * 39.37;//1160
 
 
-    public static final double maxSpeedMetersPerSec = Units.inchesToMeters(maxMotorRevsPerSecond * WHEEL_CIRCUMFERENCE_INCHES);//approx 5 mps
+    public static final double maxSpeedMetersPerSec = maxMotorRevsPerSecond * WHEEL_CIRCUMFERENCE_METERS;//approx 5 mps
     public static final double maxAccelerationMPSPS = maxSpeedMetersPerSec * 2;
     public static double calcKV = 12 / maxSpeedMetersPerSec;//approx 2.4
     public static final double maxRadiansPerSecond = (Math.PI / 3) / (.14); //servo specs .14 secs per 60 degrees 4.8 volts approx 7

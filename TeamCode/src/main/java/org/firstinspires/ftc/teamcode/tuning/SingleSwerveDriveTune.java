@@ -36,10 +36,12 @@ import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.geometry.Rotation2d;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveModuleState;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
-import org.firstinspires.ftc.teamcode.drive.SwerveDrive;
 import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
+import org.firstinspires.ftc.teamcode.drive.SwerveModule;
+import org.firstinspires.ftc.teamcode.drive.SwerveModuleConfig;
 
 
 /*
@@ -56,22 +58,21 @@ import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
  */
 
 
-@TeleOp(name = "SwerveDriveTune", group = "Tune")
+@TeleOp(name = "SingleDriveTune", group = "Tune1")
 //@Disabled
 @Config
-public class SwerveDriveTune extends CommandOpMode {
+public class SingleSwerveDriveTune extends CommandOpMode {
 
-    public static double[] DRIVEKP = {.018, .01, .01, .01};
-    public static double[] DRIVEKI = {.000, .0, .0, .0};
-    public static double[] DRIVEKD = {.025, .0, .0, .0};
-
-    public static double[] DRIVEKS = {.01, .01, .01, .01};
-    public static double[] DRIVEKV = {SwerveDriveConstants.calcKV, SwerveDriveConstants.calcKV, SwerveDriveConstants.calcKV, SwerveDriveConstants.calcKV};
-    public static double[] DRIVEKA = {.0, .0, .0, .0};
-
-    public static boolean ALL_SAME = true;
-
-    SwerveDrive swerveDrive;
+    public static double DRIVEKP = .01;
+    public static double DRIVEKI = .0;
+    public static double DRIVEKD = .0;
+    public static double DRIVEKS = .01;
+    public static double DRIVEKV = SwerveDriveConstants.calcKV;
+    public static double DRIVEKA = .0;
+    public static boolean OPENLOOP = true;
+    public static double ANGLE_OFFSET = 0;
+    SwerveModuleConfig mod;
+    SwerveModule module;
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
     double driveSpeed;
@@ -79,51 +80,35 @@ public class SwerveDriveTune extends CommandOpMode {
 
     @Override
     public void initialize() {
-        swerveDrive = new SwerveDrive(this);
+        mod = new SwerveModuleConfig(0,
+                "driveMotor", "angleServo", "angleInput", ANGLE_OFFSET, DcMotorSimple.Direction.REVERSE);
+
+        module = new SwerveModule(mod, this);
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
 
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
+
     }
 
     @Override
     public void runOpMode() {
 
-
-        // Wait for the game to start (driver presses START)
         initialize();
+        // Wait for the game to start (driver presses START)
         waitForStart();
 
         while (opModeIsActive()) {
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
 
-            if (ALL_SAME && (DRIVEKP[0] != DRIVEKP[1] || DRIVEKI[0] != DRIVEKI[1] || DRIVEKD[0] != DRIVEKD[1])) {
-                for (int i = 1; i < swerveDrive.modules.length; i++) {
-                    DRIVEKP[i] = DRIVEKP[0];
-                    DRIVEKI[i] = DRIVEKI[0];
-                    DRIVEKD[i] = DRIVEKD[0];
-                }
-            }
-
-            if (ALL_SAME && (DRIVEKS[0] != DRIVEKS[1] || DRIVEKV[0] != DRIVEKV[1] || DRIVEKA[0] != DRIVEKA[1])) {
-                for (int i = 1; i < swerveDrive.modules.length; i++) {
-                    DRIVEKS[i] = DRIVEKS[0];
-                    DRIVEKV[i] = DRIVEKV[0];
-                    DRIVEKA[i] = DRIVEKA[0];
-                }
-            }
             if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
-                for (int i = 0; i < swerveDrive.modules.length; i++) {
-                    swerveDrive.setModuleDriveKP(i, DRIVEKP[i]);
-                    swerveDrive.setModuleDriveKI(i, DRIVEKI[i]);
-                    swerveDrive.setModuleDriveKD(i, DRIVEKD[i]);
-                }
+                module.setDriveKP(DRIVEKP);
+                module.setDriveKI(DRIVEKI);
+                module.setDriveKD(DRIVEKD);
             }
             if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) {
-                for (int i = 0; i < swerveDrive.modules.length; i++) {
-                    swerveDrive.modules[i].createFeedForward(DRIVEKS[i], DRIVEKV[i], DRIVEKA[i]);
-                }
+                module.createFeedForward(DRIVEKS, DRIVEKV, DRIVEKA);
             }
 
             if (currentGamepad1.dpad_right)
@@ -132,20 +117,19 @@ public class SwerveDriveTune extends CommandOpMode {
             if (currentGamepad1.dpad_left)
                 finalDriveSpeed = driveSpeed;
 
-            swerveDrive.setModuleStates(new SwerveModuleState(finalDriveSpeed, new Rotation2d(0)));
+            if (!currentGamepad1.dpad_left && !currentGamepad1.dpad_right)
+                finalDriveSpeed = 0;
+
+            module.setState(new SwerveModuleState(finalDriveSpeed, new Rotation2d(0)));
 
 
             if (currentGamepad1.dpad_up) {
-                swerveDrive.setModuleOpenloop(true);
+                module.setOpenLoop(true);
             }
 
             if (currentGamepad1.dpad_down) {
-                swerveDrive.setModuleOpenloop(false);
+                module.setOpenLoop(false);
             }
-
-
-            if (!currentGamepad1.dpad_left && !currentGamepad1.dpad_right)
-                finalDriveSpeed = 0;
 
             if (currentGamepad1.a && !previousGamepad1.a) {
                 driveSpeed = 0.5;
@@ -161,21 +145,17 @@ public class SwerveDriveTune extends CommandOpMode {
             }
 
             telemetry.addData("CommandVel", driveSpeed);
-            telemetry.addData("OpenLoop", swerveDrive.openLoop);
-            telemetry.addData("FLDriveFF", swerveDrive.modules[0].feedForward);
-            telemetry.addData("DrivePower", swerveDrive.modules[0].getDrivePower());
-            telemetry.addData("FLDriveVel", swerveDrive.modules[0].getState().speedMetersPerSecond);
-            telemetry.addData("FRDriveVel", swerveDrive.modules[1].getState().speedMetersPerSecond);
-            telemetry.addData("BLDriveVel", swerveDrive.modules[2].getState().speedMetersPerSecond);
-            telemetry.addData("BRDriveVel", swerveDrive.modules[3].getState().speedMetersPerSecond);
-            telemetry.addData("DriveSpeed", swerveDrive.modules[0].driveSpeedMetersPerSecond);
+            telemetry.addData("OpenLoop", OPENLOOP);
+            telemetry.addData("driveMotorVel", module.driveMotor.getVelocity());
+            telemetry.addData("DriveVel", module.getState().speedMetersPerSecond);
+
             telemetry.update();
 
 
         }
     }
-
 }
+
 
 
 

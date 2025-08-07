@@ -34,7 +34,8 @@ public class SimpleTrajectoryOpmode extends CommandOpMode {
         traj = extratraj.generateTrajectory();
         waitForStart();
         while (opModeIsActive()) {
-            run();m_telemetry.update();
+            run();
+            m_telemetry.update();
             swerveDrive.runTrajectory(traj);
 
         }

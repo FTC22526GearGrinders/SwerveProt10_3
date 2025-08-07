@@ -56,8 +56,8 @@ public class Trajectories {
                 new Pose2d(12, -5.7, new Rotation2d(0))), config);
 
         // straight line left of power port
-        leftStart = TrajectoryGenerator.generateTrajectory(List.of(new Pose2d(13, -5.2, new Rotation2d(0)),
-                new Pose2d(12, -5.2, new Rotation2d(0))), config);
+        leftStart = TrajectoryGenerator.generateTrajectory(List.of(new Pose2d(Units.inchesToMeters(13), Units.inchesToMeters(-5.2), new Rotation2d(0)),
+                new Pose2d(Units.inchesToMeters(12), Units.inchesToMeters(-5.2), new Rotation2d(0))), config);
 
         // straight line right of power port
         rightStart = TrajectoryGenerator.generateTrajectory(List.of(new Pose2d(13, -6.3, new Rotation2d(0)),
