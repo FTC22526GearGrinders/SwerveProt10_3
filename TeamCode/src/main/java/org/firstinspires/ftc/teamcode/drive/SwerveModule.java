@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive;
 
+import androidx.core.math.MathUtils;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.command.CommandOpMode;
@@ -33,17 +35,23 @@ public class SwerveModule extends SubsystemBase {
     public double anglePID = 0;
     public double wheelDegs = 0;
     public double pidout;
-    public double feedForward;
+    public double feedForwardVolts;
+    SwerveModuleState newState = new SwerveModuleState();
     private SimpleMotorFeedforward driveFeedforward;
     private double lastSpeed;
-    SwerveModuleState newState=new SwerveModuleState();
+    private double pidOut;
+    private double acceLimit = 5;
+    private double powerLimit = 1;
+    private double ks =0;
+    private double ka =0;
+
     public SwerveModule(SwerveModuleConfig config, CommandOpMode opMode) {
         driveMotor = opMode.hardwareMap.get(DcMotorEx.class, config.driveMotorName);
 
         driveMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         driveMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        createFeedForward(0, SwerveDriveConstants.calcKV, 0);
+        createFeedForward(ks, SwerveDriveConstants.calcKV, ka);
 
         angleServo = opMode.hardwareMap.get(CRServo.class, config.angleServoName);
 
@@ -120,23 +128,27 @@ public class SwerveModule extends SubsystemBase {
     }
 
     public void setSpeedOpenLoop(SwerveModuleState state) {
-        double speed = state.speedMetersPerSecond;
-        double power = speed / SwerveDriveConstants.maxSpeedMetersPerSec;
-        if (power > 1) power = 1;
-        if (power < -1) power = -1;
-        driveMotor.setPower(power); //-1.0 to 1.0
+        double power = state.speedMetersPerSecond / SwerveDriveConstants.maxSpeedMetersPerSec;
+        double clampedPower = MathUtils.clamp(power, -powerLimit, powerLimit);
+        driveMotor.setPower(clampedPower); //-1.0 to 1.0
     }
 
     public void setSpeedClosedLoop(SwerveModuleState state) {
-        double acceleration = (state.speedMetersPerSecond - lastSpeed) / 0.020;
-        acceleration = Math.min(Math.max(acceleration, -5), 5);
-        feedForward = driveFeedforward.calculate(
-                state.speedMetersPerSecond, acceleration);
-        feedForward /= (SwerveDriveConstants.maxSpeedMetersPerSec * 12);
-        lastSpeed = state.speedMetersPerSecond;
-        double pidOut = driveController.calculate(getWheelSpeedMPS(), state.speedMetersPerSecond);
 
-        driveMotor.setPower(pidOut + feedForward);
+        double acceleration = (state.speedMetersPerSecond - lastSpeed) / 0.020;
+
+        acceleration = Math.min(Math.max(acceleration, -acceLimit), acceLimit);
+
+        feedForwardVolts = driveFeedforward.calculate(
+                state.speedMetersPerSecond, acceleration);
+
+        double feedforward = feedForwardVolts / 12;//volts to +/-1
+
+        lastSpeed = state.speedMetersPerSecond;
+
+        pidOut = driveController.calculate(getWheelSpeedMPS(), state.speedMetersPerSecond);
+
+        driveMotor.setPower(feedforward + pidOut);
     }
 
     public void setAngle(SwerveModuleState state) {
@@ -165,7 +177,7 @@ public class SwerveModule extends SubsystemBase {
     }
 
     public void setState(SwerveModuleState state) {
-         newState = SwerveModuleState.optimize(state, new Rotation2d(getWheelAngleRad()));
+        newState = SwerveModuleState.optimize(state, new Rotation2d(getWheelAngleRad()));
 
         setAngle(newState);
 
@@ -179,7 +191,7 @@ public class SwerveModule extends SubsystemBase {
         openLoop = val;
     }
 
-    public double getTargetMPS(){
+    public double getTargetMPS() {
         return newState.speedMetersPerSecond;
     }
 

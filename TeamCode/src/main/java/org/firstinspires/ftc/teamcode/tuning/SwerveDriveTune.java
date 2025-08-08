@@ -162,7 +162,7 @@ public class SwerveDriveTune extends CommandOpMode {
 
             telemetry.addData("CommandVel", driveSpeed);
             telemetry.addData("OpenLoop", swerveDrive.openLoop);
-            telemetry.addData("FLDriveFF", swerveDrive.modules[0].feedForward);
+            telemetry.addData("FLDriveFF", swerveDrive.modules[0].feedForwardVolts);
             telemetry.addData("DrivePower", swerveDrive.modules[0].getDrivePower());
             telemetry.addData("FLDriveVel", swerveDrive.modules[0].getState().speedMetersPerSecond);
             telemetry.addData("FRDriveVel", swerveDrive.modules[1].getState().speedMetersPerSecond);
