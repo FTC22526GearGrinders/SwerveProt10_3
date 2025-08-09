@@ -66,27 +66,27 @@ public class SwerveAngleTune extends CommandOpMode {
     public static double[] ANGLEKP = {.018, .01, .01, .01};
     public static double[] ANGLEKI = {.0005, .0, .0, .0};
     public static double[] ANGLEKD = {.025, .0, .0, .0};
-
+    public static double SWITCH_SHOW = 0;
     public static boolean ALL_SAME = true;
+
     SwerveDrive swerveDrive;
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
     FtcDashboard dashboard;
     double targetAngle;
 
+    double lastShow = 0;
+
     @Override
     public void initialize() {
         swerveDrive = new SwerveDrive(this);
         dashboard = FtcDashboard.getInstance();
-
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
-
         register(swerveDrive);
     }
 
     @Override
     public void runOpMode() {
-
 
         // Wait for the game to start (driver presses START)
         initialize();
@@ -127,19 +127,46 @@ public class SwerveAngleTune extends CommandOpMode {
             if (currentGamepad1.y) {
                 targetAngle = -90;
             }
+            if (SWITCH_SHOW != lastShow) {
+                telemetry.clearAll();
+                lastShow = SWITCH_SHOW;
+            }
 
-            telemetry.addData("FLAnglePos", swerveDrive.modules[0].getState().angle.getDegrees());
-            telemetry.addData("FRAnglePos", swerveDrive.modules[1].getState().angle.getDegrees());
-            telemetry.addData("BLAnglePos", swerveDrive.modules[2].getState().angle.getDegrees());
-            telemetry.addData("BRAnglePos", swerveDrive.modules[3].getState().angle.getDegrees());
-            telemetry.addData("FLAngleSet", swerveDrive.modules[0].pidout);
-            telemetry.addData("FRAngleSet", swerveDrive.modules[1].pidout);
-            telemetry.addData("BLAngleSet", swerveDrive.modules[2].pidout);
-            telemetry.addData("BRAngleSet", swerveDrive.modules[3].pidout);
-            telemetry.addData("FLAngleVel", swerveDrive.modules[0].getState().speedMetersPerSecond);
-            telemetry.addData("FRAngleVel", swerveDrive.modules[1].getState().speedMetersPerSecond);
-            telemetry.addData("BLAngleVel", swerveDrive.modules[2].getState().speedMetersPerSecond);
-            telemetry.addData("BRAngleVel", swerveDrive.modules[3].getState().speedMetersPerSecond);
+            if (SWITCH_SHOW > 4 || SWITCH_SHOW < 0) {
+                SWITCH_SHOW = 0;
+                telemetry.clearAll();
+                dashboard.clearTelemetry();
+            }
+            if (SWITCH_SHOW == 0) {
+                telemetry.addData("FLAnglePos", swerveDrive.modules[0].getState().angle.getDegrees());
+                telemetry.addData("FRAnglePos", swerveDrive.modules[1].getState().angle.getDegrees());
+                telemetry.addData("BLAnglePos", swerveDrive.modules[2].getState().angle.getDegrees());
+                telemetry.addData("BRAnglePos", swerveDrive.modules[3].getState().angle.getDegrees());
+            }
+            if (SWITCH_SHOW == 1) {
+                telemetry.addData("FLAngleVel", swerveDrive.modules[0].getState().speedMetersPerSecond);
+                telemetry.addData("FRAngleVel", swerveDrive.modules[1].getState().speedMetersPerSecond);
+                telemetry.addData("BLAngleVel", swerveDrive.modules[2].getState().speedMetersPerSecond);
+                telemetry.addData("BRAngleVel", swerveDrive.modules[3].getState().speedMetersPerSecond);
+            }
+            if (SWITCH_SHOW == 2) {
+                telemetry.addData("FLAnglePos", swerveDrive.modules[0].getState().angle.getDegrees());
+                telemetry.addData("FRAnglePos", swerveDrive.modules[1].getState().angle.getDegrees());
+                telemetry.addData("FLAngleVel", swerveDrive.modules[0].getState().speedMetersPerSecond);
+                telemetry.addData("FRAngleVel", swerveDrive.modules[1].getState().speedMetersPerSecond);
+            }
+            if (SWITCH_SHOW == 3) {
+                telemetry.addData("BLAnglePos", swerveDrive.modules[2].getState().angle.getDegrees());
+                telemetry.addData("BRAnglePos", swerveDrive.modules[3].getState().angle.getDegrees());
+                telemetry.addData("BLAngleVel", swerveDrive.modules[2].getState().speedMetersPerSecond);
+                telemetry.addData("BRAngleVel", swerveDrive.modules[3].getState().speedMetersPerSecond);
+            }
+            if (SWITCH_SHOW == 4) {
+                telemetry.addData("FLAnglePID", swerveDrive.modules[0].pidout);
+                telemetry.addData("FRAnglePID", swerveDrive.modules[1].pidout);
+                telemetry.addData("BLAnglePID", swerveDrive.modules[2].pidout);
+                telemetry.addData("BRAnglePID", swerveDrive.modules[3].pidout);
+            }
 
             telemetry.update();
 

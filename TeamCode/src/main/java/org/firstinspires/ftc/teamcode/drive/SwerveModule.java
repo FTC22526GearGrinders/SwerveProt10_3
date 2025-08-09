@@ -42,8 +42,8 @@ public class SwerveModule extends SubsystemBase {
     private double pidOut;
     private double acceLimit = 5;
     private double powerLimit = 1;
-    private double ks =0;
-    private double ka =0;
+    private double ks = 0;
+    private double ka = 0;
 
     public SwerveModule(SwerveModuleConfig config, CommandOpMode opMode) {
         driveMotor = opMode.hardwareMap.get(DcMotorEx.class, config.driveMotorName);
@@ -207,6 +207,10 @@ public class SwerveModule extends SubsystemBase {
         double volts = servoPotentiometer.getVoltage();
         double potAngle = volts * 360 / 3.3;
         return Math.IEEEremainder((potAngle + angleOffset), 360);
+    }
+
+    public double getPotVolts() {
+        return servoPotentiometer.getVoltage();
     }
 
     public double getWheelSpeedMPS() {

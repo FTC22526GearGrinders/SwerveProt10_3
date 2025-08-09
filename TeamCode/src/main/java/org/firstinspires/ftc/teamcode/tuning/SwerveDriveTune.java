@@ -61,6 +61,8 @@ import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
 @Config
 public class SwerveDriveTune extends CommandOpMode {
 
+    public static boolean CHANGE_SHOW = false;
+
     public static double[] DRIVEKP = {.018, .01, .01, .01};
     public static double[] DRIVEKI = {.000, .0, .0, .0};
     public static double[] DRIVEKD = {.025, .0, .0, .0};
@@ -70,18 +72,19 @@ public class SwerveDriveTune extends CommandOpMode {
     public static double[] DRIVEKA = {.0, .0, .0, .0};
 
     public static boolean ALL_SAME = true;
-
     SwerveDrive swerveDrive;
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
     double driveSpeed;
     double finalDriveSpeed;
+    FtcDashboard dashboard;
+    private boolean lastShow = false;
 
     @Override
     public void initialize() {
         swerveDrive = new SwerveDrive(this);
 
-        FtcDashboard dashboard = FtcDashboard.getInstance();
+        dashboard = FtcDashboard.getInstance();
 
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
     }
@@ -160,21 +163,28 @@ public class SwerveDriveTune extends CommandOpMode {
                 driveSpeed = 1.25;
             }
 
-            telemetry.addData("CommandVel", driveSpeed);
-            telemetry.addData("OpenLoop", swerveDrive.openLoop);
-            telemetry.addData("FLDriveFF", swerveDrive.modules[0].feedForwardVolts);
-            telemetry.addData("DrivePower", swerveDrive.modules[0].getDrivePower());
-            telemetry.addData("FLDriveVel", swerveDrive.modules[0].getState().speedMetersPerSecond);
-            telemetry.addData("FRDriveVel", swerveDrive.modules[1].getState().speedMetersPerSecond);
-            telemetry.addData("BLDriveVel", swerveDrive.modules[2].getState().speedMetersPerSecond);
-            telemetry.addData("BRDriveVel", swerveDrive.modules[3].getState().speedMetersPerSecond);
-            telemetry.addData("DriveSpeed", swerveDrive.modules[0].getTargetMPS());
+
+            if (CHANGE_SHOW != lastShow) {
+                telemetry.clearAll();
+                dashboard.clearTelemetry();
+                lastShow = CHANGE_SHOW;
+            }
+
+            if (CHANGE_SHOW) {
+                telemetry.addData("OpenLoop", swerveDrive.openLoop);
+                telemetry.addData("FLDriveFF", swerveDrive.modules[0].feedForwardVolts);
+                telemetry.addData("DrivePower", swerveDrive.modules[0].getDrivePower());
+                telemetry.addData("TargetSpeed", swerveDrive.modules[0].getTargetMPS());
+            } else {
+                telemetry.addData("CommandVel", driveSpeed);
+                telemetry.addData("FLDriveVel", swerveDrive.modules[0].getState().speedMetersPerSecond);
+                telemetry.addData("FRDriveVel", swerveDrive.modules[1].getState().speedMetersPerSecond);
+                telemetry.addData("BLDriveVel", swerveDrive.modules[2].getState().speedMetersPerSecond);
+                telemetry.addData("BRDriveVel", swerveDrive.modules[3].getState().speedMetersPerSecond);
+            }
             telemetry.update();
-
-
         }
     }
-
 }
 
 
