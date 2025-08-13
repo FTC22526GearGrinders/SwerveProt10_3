@@ -6,13 +6,13 @@ import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveDriveKinematics;
 import org.firstinspires.ftc.teamcode.utils.Units;
 
 public final class SwerveDriveConstants {
-    public static final double WHEEL_CIRCUMFERENCE_INCHES = 1.53 * Math.PI;//approx 5
+   public static final double WHEEL_CIRCUMFERENCE_INCHES = 1.53 * Math.PI;//approx 5
     public static final double WHEEL_CIRCUMFERENCE_METERS = Units.inchesToMeters(WHEEL_CIRCUMFERENCE_INCHES);//approx .12
 
     public static final double TICKS_PER_REVOLUTION = 145.1;
 
     public static final double maxMotorRevsPerSecond = 1150. / 60.;//19
-    public static final double TICKS_PER_INCH = TICKS_PER_REVOLUTION / WHEEL_CIRCUMFERENCE_INCHES;//approx 29
+//    public static final double TICKS_PER_INCH = TICKS_PER_REVOLUTION / WHEEL_CIRCUMFERENCE_INCHES;//approx 29
     public static final double TICKS_PER_METER = TICKS_PER_REVOLUTION/WHEEL_CIRCUMFERENCE_METERS;//approx 1200
 
 
@@ -43,4 +43,10 @@ public final class SwerveDriveConstants {
     //For controlling the robot Values can be adjusted depending on who is controlling
     public static final double rotationMultiplier = 0.5;
 
+    public static double robotLength;
+
+    public static double robotWidth;
+
+    public static double fieldLength = Units.inchesToMeters(72.);
+    public static double fieldWidth = Units.inchesToMeters(72.);
 }

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.utils;
+package org.firstinspires.ftc.teamcode.simulation;
 
 import com.arcrobotics.ftclib.geometry.Pose2d;
 import com.arcrobotics.ftclib.geometry.Rotation2d;
@@ -8,7 +8,6 @@ import com.arcrobotics.ftclib.trajectory.TrajectoryConfig;
 import com.arcrobotics.ftclib.trajectory.TrajectoryGenerator;
 
 import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
-import org.firstinspires.ftc.teamcode.simulation.SwerveDriveSim;
 
 import java.util.List;
 
@@ -24,12 +23,12 @@ import java.util.List;
 /**
  * Add your docs here.
  */
-public class Trajectories {
+public class TrajectoriesSim {
 
     public Trajectory crossLine, curve;
     SwerveDriveSim m_drive;
 
-    public Trajectories(SwerveDriveSim drive) {
+    public TrajectoriesSim(SwerveDriveSim drive) {
         m_drive = drive;
 
         // Create config for trajectory

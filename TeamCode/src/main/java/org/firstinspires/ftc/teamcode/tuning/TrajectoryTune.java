@@ -34,12 +34,12 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.command.CommandOpMode;
+import com.arcrobotics.ftclib.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.drive.SwerveDrive;
 import org.firstinspires.ftc.teamcode.utils.Drawing;
-import org.firstinspires.ftc.teamcode.utils.Trajectories;
 
 
 /*
@@ -74,7 +74,7 @@ public class TrajectoryTune extends CommandOpMode {
     public static double THETAKI = .0;
     public static double THETAKD = .0;
 
-    Trajectories m_trajectories;
+
     SwerveDrive swerveDrive;
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
@@ -100,7 +100,8 @@ public class TrajectoryTune extends CommandOpMode {
 
             TelemetryPacket packet = new TelemetryPacket();
             packet.fieldOverlay().setStroke("#3F51B5");
-            Drawing.drawRobot(packet.fieldOverlay(), swerveDrive.getPose());
+            Pose2d inchPose = swerveDrive.getPoseInchUnits(swerveDrive.getPose());
+            Drawing.drawRobot(packet.fieldOverlay(), inchPose, telemetry);
             FtcDashboard.getInstance().sendTelemetryPacket(packet);
             telemetry.update();
             previousGamepad1.copy(currentGamepad1);
@@ -127,17 +128,17 @@ public class TrajectoryTune extends CommandOpMode {
 
 
             if (currentGamepad1.a)
-                swerveDrive.runTrajectory(m_trajectories.leftStart);
+              //  swerveDrive.runTrajectory(m_trajectories.leftStart);
 
             if (currentGamepad1.b && !previousGamepad1.b) {
 
-                swerveDrive.runTrajectory(m_trajectories.leftStart);
+               // swerveDrive.runTrajectory(m_trajectories.leftStart);
             }
             if (currentGamepad1.x && !previousGamepad1.x) {
-                swerveDrive.runTrajectory(m_trajectories.leftStart);
+               // swerveDrive.runTrajectory(m_trajectories.leftStart);
             }
             if (currentGamepad1.y && !previousGamepad1.y) {
-                swerveDrive.runTrajectory(m_trajectories.leftStart);
+             //   swerveDrive.runTrajectory(m_trajectories.leftStart);
             }
 
             telemetry.addData("OpenLoop", swerveDrive.openLoop);

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive;
+package org.firstinspires.ftc.teamcode.simulation;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -11,29 +11,29 @@ import com.arcrobotics.ftclib.kinematics.wpilibkinematics.ChassisSpeeds;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveDriveKinematics;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveDriveOdometry;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveModuleState;
-import com.qualcomm.hardware.bosch.BHI260IMU;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
+import org.firstinspires.ftc.teamcode.drive.SwerveModuleConfig;
 import org.firstinspires.ftc.teamcode.utils.Units;
 
 
-public class SwerveDrive extends SubsystemBase {
-    public final SwerveModule[] modules;
+public class SwerveDriveSim extends SubsystemBase {
+
+    public final SwerveModuleSim[] modules;
     final ElapsedTime timer = new ElapsedTime();
-    private final BHI260IMU imu;
     private final SwerveDriveOdometry m_odometry;
+
     public Telemetry telemetry;
-    public boolean openLoop;
-
+    double previousTimeSecs;
     private Pose2d robotPose = new Pose2d();
+    private Rotation2d simYaw = new Rotation2d();
+    private ChassisSpeeds speeds = new ChassisSpeeds();
+    private double startTime;
 
-    public SwerveDrive(CommandOpMode opMode) {
+    public SwerveDriveSim(CommandOpMode opMode) {
         SwerveModuleConfig fl = new SwerveModuleConfig(0,
                 "driveMotor1", "angleServo1", "angleInput1", 117.27, DcMotorSimple.Direction.REVERSE);
 
@@ -46,27 +46,20 @@ public class SwerveDrive extends SubsystemBase {
         SwerveModuleConfig br = new SwerveModuleConfig(3,
                 "driveMotor4", "angleServo4", "angleInput4", -50.8, DcMotorSimple.Direction.REVERSE);
 
-        modules = new SwerveModule[]{
-                new SwerveModule(fl, opMode),
-                new SwerveModule(fr, opMode),
-                new SwerveModule(bl, opMode),
-                new SwerveModule(br, opMode)
+        modules = new SwerveModuleSim[]{
+                new SwerveModuleSim(fl, opMode),
+                new SwerveModuleSim(fr, opMode),
+                new SwerveModuleSim(bl, opMode),
+                new SwerveModuleSim(br, opMode)
         };
 
-        imu = opMode.hardwareMap.get(BHI260IMU.class, "imu");
-        imu.initialize(
-                new IMU.Parameters(
-                        new RevHubOrientationOnRobot(
-                                RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                                RevHubOrientationOnRobot.UsbFacingDirection.RIGHT
-                        )
-                )
-        );
 
         m_odometry = new SwerveDriveOdometry(SwerveDriveConstants.swerveKinematics, getHeading());
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(opMode.telemetry, dashboard.getTelemetry());
+
+        timer.reset();
     }
 
 
@@ -76,7 +69,7 @@ public class SwerveDrive extends SubsystemBase {
         double new_strafe = strafe * SwerveDriveConstants.maxSpeedMetersPerSec;
         double new_rotation = rotation * SwerveDriveConstants.maxRadiansPerSecond * SwerveDriveConstants.rotationMultiplier;
 
-        ChassisSpeeds speeds = fieldRelative
+        speeds = fieldRelative
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(new_translation, new_strafe, new_rotation, getHeading())
                 : new ChassisSpeeds(new_translation, new_strafe, new_rotation);
 
@@ -99,31 +92,24 @@ public class SwerveDrive extends SubsystemBase {
 
         SwerveDriveKinematics.normalizeWheelSpeeds(states, SwerveDriveConstants.maxSpeedMetersPerSec);
 
-        for (SwerveModule module : modules) {
+        for (SwerveModuleSim module : modules) {
             module.setState(states[module.moduleNumber]);
         }
     }
 
     public void setModuleStates(SwerveModuleState state) {
-        for (SwerveModule module : modules) {
+        for (SwerveModuleSim module : modules) {
             module.setState(state);
         }
     }
 
-    public void setModuleOpenloop(boolean val) {
-        for (SwerveModule module : modules) {
-            module.setOpenLoop(val);
-        }
-        openLoop = val;
-    }
-
 
     public Rotation2d getHeading() {
-        return new Rotation2d(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
+        return simYaw;
     }
 
     public void resetYaw() {
-        imu.resetYaw();
+        simYaw = new Rotation2d();
     }
 
     public ChassisSpeeds discretize( //Imported Directly From WPILIB not sure if necessary
@@ -148,21 +134,49 @@ public class SwerveDrive extends SubsystemBase {
         return robotPose;
     }
 
+    public void resetPose(Pose2d pose) {
+        m_odometry.resetPosition(pose,getHeading());
+    }
+
+    public Pose2d converMetersPoseToInches(Pose2d pose) {
+        double x = Units.metersToInches(pose.getX());
+        double y = Units.metersToInches(pose.getY());
+        Rotation2d r2d = pose.getRotation();
+        telemetry.addData("R2D", r2d.getDegrees());
+        return new Pose2d(x, y, r2d);
+    }
+
+
+    public Pose2d convertInchesPoseToMeters(Pose2d pose) {
+        double x = Units.inchesToMeters(pose.getX());
+        double y = Units.inchesToMeters(pose.getY());
+        Rotation2d r2d = pose.getRotation();
+        return new Pose2d(x, y, r2d);
+    }
+
+
+    public void updateSimYaw() {
+        double radsChange = speeds.omegaRadiansPerSecond * .02;
+        double newRads = simYaw.getRadians() + radsChange;
+
+        newRads %= 2 * Math.PI;
+        newRads = newRads < 0 ? newRads + 2 * Math.PI : newRads;
+
+        simYaw = new Rotation2d(newRads);
+    }
+
 
     @Override
     public void periodic() {
-
+        updateSimYaw();
         robotPose = updateOdometry();
 
-        YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
-        telemetry.addData("Heading", angles.getYaw(AngleUnit.DEGREES));
-        telemetry.addData("Roll", angles.getRoll(AngleUnit.DEGREES));
-        telemetry.addData("Pitch", angles.getPitch(AngleUnit.DEGREES));
-//        telemetry.addData("TPI", SwerveDriveConstants.TICKS_PER_INCH);
-//        telemetry.addData("TPM", SwerveDriveConstants.TICKS_PER_METER);
 
-        telemetry.addData("X", robotPose.getX());
-        telemetry.addData("Y", robotPose.getY());
+//        telemetry.addData("Heading", simYaw.getDegrees());
+//        telemetry.addData("RotSpeed", speeds.omegaRadiansPerSecond);
+//        telemetry.addData("X", robotPose.getX());
+//        telemetry.addData("Y", robotPose.getY());
+//        telemetry.addData("THETA", robotPose.getHeading());
 
     }
 
@@ -176,85 +190,19 @@ public class SwerveDrive extends SubsystemBase {
 
 
     public Pose2d updateOdometry() {
+        double t = timer.time();
+        double tinc = t - previousTimeSecs;
+        previousTimeSecs = t;
+        //  showTimeValues(tinc);
         return m_odometry.updateWithTime(timer.time(), getHeading(), getStates());
     }
 
-    public Pose2d getPoseInchUnits(Pose2d pose) {
-        double x = Units.metersToInches(pose.getX());
-        double y = Units.metersToInches(pose.getY());
-        Rotation2d r2d = pose.getRotation();
-        telemetry.addData("R2D", r2d.getDegrees());
-        return new Pose2d(x, y, r2d);
-    }
 
+    public void showTimeValues(double tinc) {
 
-    public void resetPose(Pose2d pose) {
-        m_odometry.resetPosition(pose, getHeading());
-    }
+        telemetry.addData("TIMER", timer.time());
 
-
-    public double getModuleAngleKP(int module) {
-        return modules[module].getAngleKP();
-    }
-
-    public void setModuleAngleKP(int module, double val) {
-        modules[module].setAngleKP(val);
-    }
-
-    public double getModuleAngleKI(int module) {
-        return modules[module].getAngleKI();
-    }
-
-    public void setModuleAngleKI(int module, double val) {
-        modules[module].setAngleKI(val);
-    }
-
-    public double getModuleAngleKD(int module) {
-        return modules[module].getAngleKD();
-    }
-
-    public void setModuleAngleKD(int module, double val) {
-        modules[module].setAngleKD(val);
-    }
-
-    public double getModuleDriveKP(int module) {
-        return modules[module].getDriveKP();
-    }
-
-    public void setModuleDriveKP(int module, double val) {
-        modules[module].setDriveKP(val);
-    }
-
-    public double getModuleDriveKI(int module) {
-        return modules[module].getDriveKI();
-    }
-
-    public void setModuleDriveKI(int module, double val) {
-        modules[module].setDriveKI(val);
-    }
-
-    public double getModuleDriveKD(int module) {
-        return modules[module].getDriveKD();
-    }
-
-    public void setModuleDriveKD(int module, double val) {
-        modules[module].setDriveKD(val);
-    }
-
-    public void setXControllerKvals(double pval, double ival, double dval) {
-        // xpidController.setPID(pval, ival, dval);
-    }
-
-    public void setYControllerKvals(double pval, double ival, double dval) {
-        //ypidController.setPID(pval, ival, dval);
-    }
-
-    public void setThetaControllerKvals(double pval, double ival, double dval) {
-        // thetapidController.setPID(pval, ival, dval);
-    }
-
-    public void showAngleValues() {
-        telemetry.addData("FLAngle", 911);
+        telemetry.addData("TIMERINC", tinc);
 
         telemetry.update();
 
