@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.utils.Units;
 import Ori.Coval.Logging.AutoLog;
 import Ori.Coval.Logging.Logger.KoalaLog;
 
-@AutoLog
+//@AutoLog
 public class SwerveModule extends SubsystemBase {
 
     private final PIDControllerFRC driveController = new PIDControllerFRC(0.01, 0, 0, .02);
@@ -47,11 +47,13 @@ public class SwerveModule extends SubsystemBase {
     public SwerveModuleState origState = new SwerveModuleState();
     double volts;
     boolean optimized;
+    private boolean lockReadPot;
     private SimpleMotorFeedforward driveFeedforward;
     private double lastSpeed;
     private double pidOut;
     private double potAngle;
     private double averageWheelAngle;
+    private int sampleCount;
 
     public SwerveModule(SwerveModuleConfig config, CommandOpMode opMode) {
         driveMotor = opMode.hardwareMap.get(DcMotorEx.class, config.driveMotorName);
@@ -161,27 +163,14 @@ public class SwerveModule extends SubsystemBase {
     }
 
     public void setAngle(SwerveModuleState state) {
-        origState = state;
+
         angleSetPoint = state.angle.getDegrees();
 
         setpoint = angleSetPoint;
 
         angleController.setSetpoint(setpoint);
 
-        double temp1 = getWheelAngleDeg();
-        double temp2 = getWheelAngleDeg();
-        double temp3 = getWheelAngleDeg();
-        averageWheelAngle = (temp1 + temp2 + temp3) / 3;
-
-        wheelDegs = averageWheelAngle;
-
         pidout = angleController.calculate(wheelDegs, setpoint);
-
-//        double testVal = angleController.calculate(getWheelAngleDeg(),-90);
-//        telemetry.addData("TETSPID "+ moduleNumber,testVal);
-//        double testVal1 = angleController.calculate(getWheelAngleDeg(),90);
-//        telemetry.addData("TETSPID1 "+ moduleNumber,testVal1);
-
 
         if (pidout > 1) pidout = 1;
         if (pidout < -1) pidout = -1;
@@ -198,12 +187,15 @@ public class SwerveModule extends SubsystemBase {
     }
 
     public void setState(SwerveModuleState state) {
+        optimized = false;
+        lockReadPot = true;
+        if (state.angle.getDegrees() != origState.angle.getDegrees()) {
+            origState = state;
+            newState = SwerveModuleState.optimize(state, Rotation2d.fromDegrees(wheelDegs));
+            optimized = true;
 
-
-        newState = SwerveModuleState.optimize(state, Rotation2d.fromDegrees(getWheelAngleDeg()));
-
-        optimized = state.angle.getDegrees() != newState.angle.getDegrees();
-
+        }
+        lockReadPot = false;
         //newState = state;
         setAngle(newState);
 
@@ -249,6 +241,12 @@ public class SwerveModule extends SubsystemBase {
 
     @Override
     public void periodic() {
+        sampleCount++;
+        if (sampleCount >= 5 && !lockReadPot) {
+            wheelDegs = getWheelAngleDeg();
+            sampleCount = 0;
+        }
+
         if (showTelemetry) {
             KoalaLog.log("TargetDegreesOrig" + moduleNumber, origState.angle.getDegrees(), true);
             KoalaLog.log("TargetDegreesOpt" + moduleNumber, newState.angle.getDegrees(), true);

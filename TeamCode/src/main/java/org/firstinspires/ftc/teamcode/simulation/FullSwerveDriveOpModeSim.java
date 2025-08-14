@@ -22,7 +22,7 @@ import Ori.Coval.Logging.Logger.KoalaLog;
 
 @TeleOp(name = "FullSwerveSim", group = "Sim")
 @Config
-@AutoLog
+//@AutoLog
 public class FullSwerveDriveOpModeSim extends CommandOpMode {
     public static boolean RUNT;
     //  public Telemetry telemetry;

@@ -62,7 +62,7 @@ import Ori.Coval.Logging.Logger.KoalaLog;
 
 @TeleOp(name = "SwerveAngleTune", group = "Tune")
 //@Disabled
-@AutoLog
+//@AutoLog
 @Config
 public class SwerveAngleTune extends CommandOpMode {
 
