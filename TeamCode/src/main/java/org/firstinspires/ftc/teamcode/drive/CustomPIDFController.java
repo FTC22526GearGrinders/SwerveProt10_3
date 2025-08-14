@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive;
 
+import com.arcrobotics.ftclib.util.MathUtils;
+
 public class CustomPIDFController {
 
     private double kP, kI, kD, kF;
@@ -116,7 +118,6 @@ public class CustomPIDFController {
             errorVal_p = inputModulus(sp - measuredValue, minimumInput, maximumInput);
         } else {
             errorVal_p = setPoint - measuredValue;
-
         }
         errorVal_v = (errorVal_p - prevErrorVal) / period;
     }
@@ -215,7 +216,7 @@ public class CustomPIDFController {
         measuredValue = pv;
 
         if (continuous) {
-            errorVal_p = inputModulus(setPoint - pv, minimumInput, maximumInput);
+            errorVal_p = inputModulus(setPoint - pv, minimumInput, maximumInput)/2;
         } else {
             errorVal_p = setPoint - pv;
         }

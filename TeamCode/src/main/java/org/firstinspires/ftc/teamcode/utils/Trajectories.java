@@ -7,6 +7,7 @@ import com.arcrobotics.ftclib.trajectory.Trajectory;
 import com.arcrobotics.ftclib.trajectory.TrajectoryConfig;
 import com.arcrobotics.ftclib.trajectory.TrajectoryGenerator;
 
+import org.firstinspires.ftc.teamcode.drive.SwerveDrive;
 import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
 import org.firstinspires.ftc.teamcode.simulation.SwerveDriveSim;
 
@@ -27,9 +28,9 @@ import java.util.List;
 public class Trajectories {
 
     public Trajectory crossLine, curve;
-    SwerveDriveSim m_drive;
+    SwerveDrive m_drive;
 
-    public Trajectories(SwerveDriveSim drive) {
+    public Trajectories(SwerveDrive drive) {
         m_drive = drive;
 
         // Create config for trajectory
@@ -43,7 +44,7 @@ public class Trajectories {
         // straight line
         crossLine = TrajectoryGenerator.generateTrajectory(
 
-                List.of(new Pose2d(0, 0, new Rotation2d(0)), new Pose2d(1.5, 0, new Rotation2d(0))),
+                List.of(new Pose2d(0, 0, new Rotation2d(0)), new Pose2d(1.5, .3, new Rotation2d(0))),
                 config);
 
 

@@ -58,6 +58,7 @@ public class RunTrajectoryCommand extends CommandBase {
 
     @Override
     public void initialize() {
+        drive.resetYaw();
         Pose2d initialPose = traj.getInitialPose();
         drive.resetPose(initialPose);
         trajLength = traj.getTotalTimeSeconds();

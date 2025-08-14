@@ -7,11 +7,15 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.geometry.Pose2d;
+import com.arcrobotics.ftclib.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import org.firstinspires.ftc.teamcode.drive.DriveCommand;
+import org.firstinspires.ftc.teamcode.drive.RunTrajectoryCommand;
 import org.firstinspires.ftc.teamcode.drive.SwerveDrive;
 import org.firstinspires.ftc.teamcode.utils.Drawing;
+import org.firstinspires.ftc.teamcode.utils.Trajectories;
 
 
 @TeleOp(name = "FullSwerveTest", group = "Test")
@@ -23,12 +27,22 @@ public class FullSwerveDriveOpMode extends CommandOpMode {
     double speedDivisor = 2;
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
+    Trajectories trajectories;
+    Trajectory traj;
 
     public void initialize() {
         swerveDrive = new SwerveDrive(this);
+        register(swerveDrive);
+        trajectories = new Trajectories(swerveDrive);
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
         swerveDrive.setModuleOpenloop(false);
+        swerveDrive.setDefaultCommand
+                (new DriveCommand(swerveDrive,
+                        gamepad1,
+                        true,
+                        this));
+
     }
 
     @Override
@@ -41,27 +55,27 @@ public class FullSwerveDriveOpMode extends CommandOpMode {
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
 
-            if (currentGamepad1.right_bumper) {
-                double y = -gamepad1.left_stick_y / speedDivisor;
-                double x = gamepad1.left_stick_x / speedDivisor;
-                double rx = gamepad1.right_stick_x;
-                swerveDrive.drive(y, -x, rx, true);
-            }
-
             if (!currentGamepad1.right_bumper && previousGamepad1.right_bumper) {
                 swerveDrive.drive(0., 0., 0, true);
             }
 
 
-        if (gamepad1.a) {
-            swerveDrive.resetYaw();
+            if (gamepad1.a) {
+                swerveDrive.resetYaw();
+            }
+
+            if (currentGamepad1.x && !previousGamepad1.x) {
+                new RunTrajectoryCommand(swerveDrive, trajectories.crossLine, this).schedule();
+            }
+
+
+            TelemetryPacket packet = new TelemetryPacket();
+            packet.fieldOverlay().setStroke("#3F51B5");
+            Pose2d inchPose = swerveDrive.getPoseInchUnits(swerveDrive.getPose());
+            Drawing.drawRobot(packet.fieldOverlay(), inchPose, telemetry);
+            FtcDashboard.getInstance().sendTelemetryPacket(packet);
+            telemetry.addData("Speed", swerveDrive.getStates()[0].speedMetersPerSecond);
+            telemetry.update();
         }
-        TelemetryPacket packet = new TelemetryPacket();
-        packet.fieldOverlay().setStroke("#3F51B5");
-        Pose2d inchPose = swerveDrive.getPoseInchUnits(swerveDrive.getPose());
-        Drawing.drawRobot(packet.fieldOverlay(), inchPose, telemetry);
-        FtcDashboard.getInstance().sendTelemetryPacket(packet);
-        telemetry.update();
     }
-}
 }

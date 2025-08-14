@@ -142,6 +142,8 @@ public class SwerveAngleTune extends CommandOpMode {
                 telemetry.addData("FRAnglePos", swerveDrive.modules[1].getState().angle.getDegrees());
                 telemetry.addData("BLAnglePos", swerveDrive.modules[2].getState().angle.getDegrees());
                 telemetry.addData("BRAnglePos", swerveDrive.modules[3].getState().angle.getDegrees());
+                telemetry.addData("TgtAngle", targetAngle);
+                telemetry.addData("FLAnglePID", swerveDrive.modules[0].pidout);
             }
             if (SWITCH_SHOW == 1) {
                 telemetry.addData("FLAngleVel", swerveDrive.modules[0].getState().speedMetersPerSecond);

@@ -135,7 +135,7 @@ public class SwerveDriveTune extends CommandOpMode {
             if (currentGamepad1.dpad_left)
                 finalDriveSpeed = driveSpeed;
 
-            swerveDrive.setModuleStates(new SwerveModuleState(finalDriveSpeed, new Rotation2d(0)));
+            swerveDrive.drive(finalDriveSpeed,0,0,true);
 
 
             if (currentGamepad1.dpad_up) {
