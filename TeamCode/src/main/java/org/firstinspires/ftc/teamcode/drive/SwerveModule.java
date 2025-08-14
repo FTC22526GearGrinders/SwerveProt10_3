@@ -17,12 +17,19 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.utils.Units;
 
+import Ori.Coval.Logging.AutoLog;
+import Ori.Coval.Logging.Logger.KoalaLog;
 
+@AutoLog
 public class SwerveModule extends SubsystemBase {
 
-    private final PIDControllerFRC driveController = new PIDControllerFRC(0.01, 0, 0);
+    private final PIDControllerFRC driveController = new PIDControllerFRC(0.01, 0, 0, .02);
     private final PIDControllerFRC angleController = new PIDControllerFRC(.01, 0., 0., 0.02);
     private final boolean showTelemetry = true;
+    private final double acceLimit = 5;
+    private final double powerLimit = 1;
+    private final double ks = 0;
+    private final double ka = 0;
     public CRServo angleServo;
     public DcMotorEx driveMotor;
     public AnalogInput servoPotentiometer;
@@ -36,15 +43,15 @@ public class SwerveModule extends SubsystemBase {
     public double wheelDegs = 0;
     public double pidout;
     public double feedForwardVolts;
-    SwerveModuleState newState = new SwerveModuleState();
+    public SwerveModuleState newState = new SwerveModuleState();
+    public SwerveModuleState origState = new SwerveModuleState();
     double volts;
+    boolean optimized;
     private SimpleMotorFeedforward driveFeedforward;
     private double lastSpeed;
     private double pidOut;
-    private double acceLimit = 5;
-    private double powerLimit = 1;
-    private double ks = 0;
-    private double ka = 0;
+    private double potAngle;
+    private double averageWheelAngle;
 
     public SwerveModule(SwerveModuleConfig config, CommandOpMode opMode) {
         driveMotor = opMode.hardwareMap.get(DcMotorEx.class, config.driveMotorName);
@@ -154,14 +161,19 @@ public class SwerveModule extends SubsystemBase {
     }
 
     public void setAngle(SwerveModuleState state) {
-
+        origState = state;
         angleSetPoint = state.angle.getDegrees();
 
         setpoint = angleSetPoint;
 
         angleController.setSetpoint(setpoint);
 
-        wheelDegs = getWheelAngleDeg();
+        double temp1 = getWheelAngleDeg();
+        double temp2 = getWheelAngleDeg();
+        double temp3 = getWheelAngleDeg();
+        averageWheelAngle = (temp1 + temp2 + temp3) / 3;
+
+        wheelDegs = averageWheelAngle;
 
         pidout = angleController.calculate(wheelDegs, setpoint);
 
@@ -188,11 +200,9 @@ public class SwerveModule extends SubsystemBase {
     public void setState(SwerveModuleState state) {
 
 
-        newState = SwerveModuleState.optimize(state,  Rotation2d.fromDegrees(getWheelAngleDeg()));
+        newState = SwerveModuleState.optimize(state, Rotation2d.fromDegrees(getWheelAngleDeg()));
 
-        boolean optimized = state.angle.getDegrees() !=newState.angle.getDegrees();
-
-        telemetry.addData("OPT" + moduleNumber, optimized);
+        optimized = state.angle.getDegrees() != newState.angle.getDegrees();
 
         //newState = state;
         setAngle(newState);
@@ -221,7 +231,7 @@ public class SwerveModule extends SubsystemBase {
 
     double getWheelAngleDeg() {
         volts = servoPotentiometer.getVoltage();
-        double potAngle = volts * 360 / 3.3;
+        potAngle = volts * 360 / 3.3;
         return Math.IEEEremainder((potAngle + angleOffset), 360);
     }
 
@@ -240,14 +250,17 @@ public class SwerveModule extends SubsystemBase {
     @Override
     public void periodic() {
         if (showTelemetry) {
-            telemetry.addData("TargetDegrees" + moduleNumber, newState.angle.getDegrees());
-            telemetry.addData("CurrentDegrees" + moduleNumber, getWheelAngleDeg());
-            telemetry.addData("Volts" + moduleNumber, volts);
-            telemetry.addData("PIDOut" + moduleNumber, anglePID);
-//            telemetry.addData("DrivePower" + moduleNumber, getDrivePower());
-//            telemetry.addData("DriveSpeed" + moduleNumber, getTargetMPS());
-//            telemetry.addData("DrivePosition" + moduleNumber, getWheelPosition());
-//            telemetry.addData("DriveTicks" + moduleNumber, driveMotor.getCurrentPosition());
+            KoalaLog.log("TargetDegreesOrig" + moduleNumber, origState.angle.getDegrees(), true);
+            KoalaLog.log("TargetDegreesOpt" + moduleNumber, newState.angle.getDegrees(), true);
+            KoalaLog.log("CurrentDegrees" + moduleNumber, getWheelAngleDeg(), true);
+            KoalaLog.log("Volts" + moduleNumber, volts, true);
+            KoalaLog.log("PIDOut" + moduleNumber, anglePID, true);
+            KoalaLog.log("POTAngle" + moduleNumber, potAngle, true);
+
+//            KoalaLog.log("DrivePower" + moduleNumber, getDrivePower());
+//            KoalaLog.log("DriveSpeed" + moduleNumber, getTargetMPS());
+//            KoalaLog.log("DrivePosition" + moduleNumber, getWheelPosition());
+//            KoalaLog.log("DriveTicks" + moduleNumber, driveMotor.getCurrentPosition());
 
         }
         if (angleController.atSetpoint()) {

@@ -41,6 +41,10 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.teamcode.drive.SwerveDrive;
 import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
 
+import Ori.Coval.Logging.AutoLog;
+import Ori.Coval.Logging.AutoLogManager;
+import Ori.Coval.Logging.Logger.KoalaLog;
+
 
 /*
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -58,6 +62,7 @@ import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
 
 @TeleOp(name = "SwerveAngleTune", group = "Tune")
 //@Disabled
+@AutoLog
 @Config
 public class SwerveAngleTune extends CommandOpMode {
 
@@ -79,6 +84,7 @@ public class SwerveAngleTune extends CommandOpMode {
 
     @Override
     public void initialize() {
+        KoalaLog.setup(hardwareMap);
         swerveDrive = new SwerveDrive(this);
         dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
@@ -95,7 +101,7 @@ public class SwerveAngleTune extends CommandOpMode {
         while (opModeIsActive()) {
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
-
+            AutoLogManager.periodic();
             if (ALL_SAME && (ANGLEKP[0] != ANGLEKP[1] || ANGLEKI[0] != ANGLEKI[1] || ANGLEKD[0] != ANGLEKD[1])) {
                 for (int i = 1; i < swerveDrive.modules.length; i++) {
                     ANGLEKP[i] = ANGLEKP[0];
@@ -132,53 +138,26 @@ public class SwerveAngleTune extends CommandOpMode {
                 lastShow = SWITCH_SHOW;
             }
 
-            if (SWITCH_SHOW > 4 || SWITCH_SHOW < 0) {
+            if (SWITCH_SHOW > 3 || SWITCH_SHOW < 0) {
                 SWITCH_SHOW = 0;
                 telemetry.clearAll();
                 dashboard.clearTelemetry();
             }
-            if (SWITCH_SHOW == 0) {
-                telemetry.addData("FLAnglePos", swerveDrive.modules[0].getState().angle.getDegrees());
-                telemetry.addData("FRAnglePos", swerveDrive.modules[1].getState().angle.getDegrees());
-                telemetry.addData("BLAnglePos", swerveDrive.modules[2].getState().angle.getDegrees());
-                telemetry.addData("BRAnglePos", swerveDrive.modules[3].getState().angle.getDegrees());
-                telemetry.addData("TgtAngle", targetAngle);
-                telemetry.addData("FLAnglePID", swerveDrive.modules[0].pidout);
-            }
-            if (SWITCH_SHOW == 1) {
-                telemetry.addData("FLAngleVel", swerveDrive.modules[0].getState().speedMetersPerSecond);
-                telemetry.addData("FRAngleVel", swerveDrive.modules[1].getState().speedMetersPerSecond);
-                telemetry.addData("BLAngleVel", swerveDrive.modules[2].getState().speedMetersPerSecond);
-                telemetry.addData("BRAngleVel", swerveDrive.modules[3].getState().speedMetersPerSecond);
-            }
-            if (SWITCH_SHOW == 2) {
-                telemetry.addData("FLAnglePos", swerveDrive.modules[0].getState().angle.getDegrees());
-                telemetry.addData("FRAnglePos", swerveDrive.modules[1].getState().angle.getDegrees());
-                telemetry.addData("FLAngleVel", swerveDrive.modules[0].getState().speedMetersPerSecond);
-                telemetry.addData("FRAngleVel", swerveDrive.modules[1].getState().speedMetersPerSecond);
-            }
-            if (SWITCH_SHOW == 3) {
-                telemetry.addData("BLAnglePos", swerveDrive.modules[2].getState().angle.getDegrees());
-                telemetry.addData("BRAnglePos", swerveDrive.modules[3].getState().angle.getDegrees());
-                telemetry.addData("BLAngleVel", swerveDrive.modules[2].getState().speedMetersPerSecond);
-                telemetry.addData("BRAngleVel", swerveDrive.modules[3].getState().speedMetersPerSecond);
-            }
-            if (SWITCH_SHOW == 4) {
-                telemetry.addData("FLAnglePID", swerveDrive.modules[0].pidout);
-                telemetry.addData("FRAnglePID", swerveDrive.modules[1].pidout);
-                telemetry.addData("BLAnglePID", swerveDrive.modules[2].pidout);
-                telemetry.addData("BRAnglePID", swerveDrive.modules[3].pidout);
-            }
+            if (SWITCH_SHOW > 0 && SWITCH_SHOW < 4) {
+                KoalaLog.log("WheelDegs" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].wheelDegs, true);
+                KoalaLog.log("AngleVel" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].getState().speedMetersPerSecond, true);
+                KoalaLog.log("TgtAngle" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].newState.angle.getDegrees(), true);
+                KoalaLog.log("OrigTgtAngle" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].origState.angle.getDegrees(), true);
+                KoalaLog.log("AnglePID" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].pidout, true);
+                KoalaLog.log("AngleVolts" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].getPotVolts(), true);
 
-            telemetry.update();
-
-
+                telemetry.update();
+            }
         }
+
+
     }
-
 }
-
-
 
 
 

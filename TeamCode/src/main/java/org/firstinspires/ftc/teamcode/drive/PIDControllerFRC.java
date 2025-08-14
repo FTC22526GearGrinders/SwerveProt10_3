@@ -5,7 +5,10 @@ package org.firstinspires.ftc.teamcode.drive;
 // the WPILib BSD license file in the root directory of this project.
 
 
+import Ori.Coval.Logging.AutoLog;
+
 /** Implements a PID control loop. */
+@AutoLog
 public class PIDControllerFRC  {
     private static int instances;
 
