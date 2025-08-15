@@ -14,9 +14,6 @@ import com.arcrobotics.ftclib.trajectory.Trajectory;
 import com.arcrobotics.ftclib.trajectory.TrapezoidProfile;
 import com.arcrobotics.ftclib.util.Timing;
 
-import org.firstinspires.ftc.teamcode.R;
-import org.firstinspires.ftc.teamcode.simulation.SwerveDriveSim;
-import org.firstinspires.ftc.teamcode.simulation.SwerveModuleSim;
 import org.firstinspires.ftc.teamcode.utils.HolonomicDriveController;
 
 import java.util.concurrent.TimeUnit;
@@ -44,7 +41,7 @@ public class RunTrajectoryCommand extends CommandBase {
     private double trajLength;
 
     public RunTrajectoryCommand(SwerveDrive drive, Trajectory traj, CommandOpMode opMode) {
-        this.drive= drive;
+        this.drive = drive;
         this.traj = traj;
         myOpmode = opMode;
         addRequirements(this.drive);
@@ -66,14 +63,14 @@ public class RunTrajectoryCommand extends CommandBase {
         timer.start();
         FtcDashboard dashboard = FtcDashboard.getInstance();
         myOpmode.telemetry = new MultipleTelemetry(myOpmode.telemetry, dashboard.getTelemetry());
-       // myOpmode.telemetry.addData("TRAJTIME", traj.getTotalTimeSeconds());
+        // myOpmode.telemetry.addData("TRAJTIME", traj.getTotalTimeSeconds());
     }
 
     @Override
     public void execute() {
 
         curTime = timer.elapsedTime() / 1000.;
-      //  myOpmode.telemetry.addData("CURTIME", curTime);
+        //  myOpmode.telemetry.addData("CURTIME", curTime);
         Trajectory.State desiredState = traj.sample(curTime);
 //        myOpmode.telemetry.addData("CURSTATE_X", desiredState.poseMeters.getX());
 //        myOpmode.telemetry.addData("CURSTATE_Y", desiredState.poseMeters.getY());
@@ -94,7 +91,7 @@ public class RunTrajectoryCommand extends CommandBase {
         }
 
 
-       // myOpmode.telemetry.update();
+        // myOpmode.telemetry.update();
 
     }
 

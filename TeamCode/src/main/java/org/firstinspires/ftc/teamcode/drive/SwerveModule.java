@@ -6,9 +6,11 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.command.SubsystemBase;
+import com.arcrobotics.ftclib.controller.wpilibcontroller.ProfiledPIDController;
 import com.arcrobotics.ftclib.controller.wpilibcontroller.SimpleMotorFeedforward;
 import com.arcrobotics.ftclib.geometry.Rotation2d;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveModuleState;
+import com.arcrobotics.ftclib.trajectory.TrapezoidProfile;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -17,15 +19,20 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.utils.Units;
 
-import Ori.Coval.Logging.AutoLog;
 import Ori.Coval.Logging.Logger.KoalaLog;
 
 //@AutoLog
 public class SwerveModule extends SubsystemBase {
 
     private final PIDControllerFRC driveController = new PIDControllerFRC(0.01, 0, 0, .02);
-    private final PIDControllerFRC angleController = new PIDControllerFRC(.01, 0., 0., 0.02);
-    private final boolean showTelemetry = true;
+
+    private final PIDControllerFRC angleController = new PIDControllerFRC(.015, 0.0, 0., 0.02);
+    TrapezoidProfile.Constraints constraints = new TrapezoidProfile.Constraints(
+            25, 30);
+    private final ProfiledPIDController thetapidController = new ProfiledPIDController(.02, 0, 0, constraints);
+
+    private final boolean showTelemetry = false;
+    private final boolean log = false;
     private final double acceLimit = 5;
     private final double powerLimit = 1;
     private final double ks = 0;
@@ -34,7 +41,6 @@ public class SwerveModule extends SubsystemBase {
     public DcMotorEx driveMotor;
     public AnalogInput servoPotentiometer;
     public double angleOffset;
-    public double angleSetPoint;
     public boolean openLoop;
     public int moduleNumber;
     public Telemetry telemetry;
@@ -45,6 +51,7 @@ public class SwerveModule extends SubsystemBase {
     public double feedForwardVolts;
     public SwerveModuleState newState = new SwerveModuleState();
     public SwerveModuleState origState = new SwerveModuleState();
+    public double sampleCount;
     double volts;
     boolean optimized;
     private boolean lockReadPot;
@@ -52,8 +59,8 @@ public class SwerveModule extends SubsystemBase {
     private double lastSpeed;
     private double pidOut;
     private double potAngle;
-    private double averageWheelAngle;
-    private int sampleCount;
+    public double MAX_ANGLE_PID=.1;
+
 
     public SwerveModule(SwerveModuleConfig config, CommandOpMode opMode) {
         driveMotor = opMode.hardwareMap.get(DcMotorEx.class, config.driveMotorName);
@@ -73,13 +80,23 @@ public class SwerveModule extends SubsystemBase {
 
         angleController.enableContinuousInput(-180, 180);
 
+        angleController.setIZone(5);
+
         angleController.setTolerance(3);
 
         moduleNumber = config.moduleNumber;
 
+
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(opMode.telemetry, dashboard.getTelemetry());
 
+
+    }
+
+    public static double round2dp(double number, int dp) {
+        double temp = Math.pow(10, dp);
+        double temp1 = Math.round(number * temp);
+        return temp1 / temp;
     }
 
     public void createFeedForward(double ks, double kv, double ka) {
@@ -113,6 +130,14 @@ public class SwerveModule extends SubsystemBase {
         angleController.setD(val);
     }
 
+    public double getAnglePIDMAX() {
+        return MAX_ANGLE_PID;
+    }
+
+    public void setAnglePIDMAX(double val) {
+        MAX_ANGLE_PID=val;
+    }
+
     public double getDriveKP() {
         return driveController.getP();
     }
@@ -136,7 +161,6 @@ public class SwerveModule extends SubsystemBase {
     public void setDriveKD(double val) {
         driveController.setD(val);
     }
-
 
     public void setSpeedOpenLoop(SwerveModuleState state) {
         double power = state.speedMetersPerSecond / SwerveDriveConstants.maxSpeedMetersPerSec;
@@ -164,45 +188,56 @@ public class SwerveModule extends SubsystemBase {
 
     public void setAngle(SwerveModuleState state) {
 
-        angleSetPoint = state.angle.getDegrees();
 
-        setpoint = angleSetPoint;
+        setpoint = state.angle.getDegrees();
 
         angleController.setSetpoint(setpoint);
 
         pidout = angleController.calculate(wheelDegs, setpoint);
 
-        if (pidout > 1) pidout = 1;
-        if (pidout < -1) pidout = -1;
+        if (pidout > MAX_ANGLE_PID) pidout = MAX_ANGLE_PID;
+        if (pidout < -MAX_ANGLE_PID) pidout = -MAX_ANGLE_PID;
 
         anglePID = pidout;
 
         angleServo.setPower(pidout);
     }
 
-    public SwerveModuleState getState() {
+    public void setAngleTrapezoid(SwerveModuleState state) {
+        setpoint = state.angle.getDegrees();
+
+        double pidout =
+                thetapidController.calculate(
+                        wheelDegs, setpoint);
+
+        angleServo.setPower(pidout);
+    }
+
+
+
+        public SwerveModuleState getState() {
         double speedMetersPerSecond = getWheelSpeedMPS();
         double angleRadians = getWheelAngleRad();
         return new SwerveModuleState(speedMetersPerSecond, new Rotation2d(angleRadians));
     }
 
     public void setState(SwerveModuleState state) {
-        optimized = false;
-        lockReadPot = true;
+        wheelDegs = getWheelAngleDeg();
         if (state.angle.getDegrees() != origState.angle.getDegrees()) {
-            origState = state;
             newState = SwerveModuleState.optimize(state, Rotation2d.fromDegrees(wheelDegs));
-            optimized = true;
+            origState = state;
 
         }
-        lockReadPot = false;
-        //newState = state;
-        setAngle(newState);
 
         if (openLoop)
             setSpeedOpenLoop(newState);
         else
             setSpeedClosedLoop(newState);
+
+
+        setAngle(newState);
+
+
     }
 
     public void setOpenLoop(boolean val) {
@@ -214,7 +249,7 @@ public class SwerveModule extends SubsystemBase {
     }
 
     public double getWheelAngleRad() {
-        return Units.degreesToRadians(getWheelAngleDeg());
+        return Units.degreesToRadians(wheelDegs);
     }
 
     public double getWheelPosition() {
@@ -223,8 +258,9 @@ public class SwerveModule extends SubsystemBase {
 
     double getWheelAngleDeg() {
         volts = servoPotentiometer.getVoltage();
-        potAngle = volts * 360 / 3.3;
-        return Math.IEEEremainder((potAngle + angleOffset), 360);
+        potAngle = round2dp(volts * 360 / 3.3, 2);
+
+        return Math.round(Math.IEEEremainder((potAngle + angleOffset), 360));
     }
 
     public double getPotVolts() {
@@ -241,16 +277,11 @@ public class SwerveModule extends SubsystemBase {
 
     @Override
     public void periodic() {
-        sampleCount++;
-        if (sampleCount >= 5 && !lockReadPot) {
-            wheelDegs = getWheelAngleDeg();
-            sampleCount = 0;
-        }
 
-        if (showTelemetry) {
+        if (log) {
             KoalaLog.log("TargetDegreesOrig" + moduleNumber, origState.angle.getDegrees(), true);
             KoalaLog.log("TargetDegreesOpt" + moduleNumber, newState.angle.getDegrees(), true);
-            KoalaLog.log("CurrentDegrees" + moduleNumber, getWheelAngleDeg(), true);
+            KoalaLog.log("CurrentDegrees" + moduleNumber, wheelDegs, true);
             KoalaLog.log("Volts" + moduleNumber, volts, true);
             KoalaLog.log("PIDOut" + moduleNumber, anglePID, true);
             KoalaLog.log("POTAngle" + moduleNumber, potAngle, true);
@@ -261,6 +292,23 @@ public class SwerveModule extends SubsystemBase {
 //            KoalaLog.log("DriveTicks" + moduleNumber, driveMotor.getCurrentPosition());
 
         }
+
+        if (showTelemetry) {
+            telemetry.addData("TargetDegreesOrig" + moduleNumber, origState.angle.getDegrees());
+            telemetry.addData("TargetDegreesOpt" + moduleNumber, newState.angle.getDegrees());
+            telemetry.addData("CurrentDegrees" + moduleNumber, wheelDegs);
+            telemetry.addData("Volts" + moduleNumber, volts);
+            telemetry.addData("PIDOut" + moduleNumber, anglePID);
+            telemetry.addData("POTAngle" + moduleNumber, potAngle);
+            telemetry.update();
+//            KoalaLog.log("DrivePower" + moduleNumber, getDrivePower());
+//            KoalaLog.log("DriveSpeed" + moduleNumber, getTargetMPS());
+//            KoalaLog.log("DrivePosition" + moduleNumber, getWheelPosition());
+//            KoalaLog.log("DriveTicks" + moduleNumber, driveMotor.getCurrentPosition());
+
+        }
+
+
         if (angleController.atSetpoint()) {
             angleServo.setPower(0);
         }

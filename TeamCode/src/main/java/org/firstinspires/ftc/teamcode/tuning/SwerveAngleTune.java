@@ -41,7 +41,6 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.teamcode.drive.SwerveDrive;
 import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
 
-import Ori.Coval.Logging.AutoLog;
 import Ori.Coval.Logging.AutoLogManager;
 import Ori.Coval.Logging.Logger.KoalaLog;
 
@@ -68,9 +67,10 @@ public class SwerveAngleTune extends CommandOpMode {
 
     // Declare OpMode members.
 
-    public static double[] ANGLEKP = {.018, .01, .01, .01};
-    public static double[] ANGLEKI = {.0005, .0, .0, .0};
-    public static double[] ANGLEKD = {.025, .0, .0, .0};
+    public static double[] ANGLEKP = {.02, .02, .02, .02};
+    public static double[] ANGLEKI = {.00, .0, .0, .0};
+    public static double[] ANGLEKD = {0.75, .75, .750, .75};
+    public static double MAX_ANGLE_PID = .1;
     public static double SWITCH_SHOW = 0;
     public static boolean ALL_SAME = true;
 
@@ -115,10 +115,11 @@ public class SwerveAngleTune extends CommandOpMode {
                     swerveDrive.setModuleAngleKP(i, ANGLEKP[i]);
                     swerveDrive.setModuleAngleKI(i, ANGLEKI[i]);
                     swerveDrive.setModuleAngleKD(i, ANGLEKD[i]);
-
+                    swerveDrive.setMAX_ANGLE_PID(i, MAX_ANGLE_PID);
                 }
             }
             double driveSpeed = gamepad1.left_stick_y * SwerveDriveConstants.maxSpeedMetersPerSec;
+
             swerveDrive.setModuleStates(new SwerveModuleState(driveSpeed, Rotation2d.fromDegrees(targetAngle)));
 
             if (currentGamepad1.a) {
@@ -133,6 +134,20 @@ public class SwerveAngleTune extends CommandOpMode {
             if (currentGamepad1.y) {
                 targetAngle = -90;
             }
+            if (currentGamepad1.dpad_left) {
+                targetAngle = 45;
+            }
+            if (currentGamepad1.dpad_right) {
+                targetAngle = 60;
+            }
+            if (currentGamepad1.dpad_up) {
+                targetAngle = 30;
+            }
+            if (currentGamepad1.dpad_down) {
+                targetAngle = 750;
+
+
+            }
             if (SWITCH_SHOW != lastShow) {
                 telemetry.clearAll();
                 lastShow = SWITCH_SHOW;
@@ -140,18 +155,19 @@ public class SwerveAngleTune extends CommandOpMode {
 
             if (SWITCH_SHOW > 3 || SWITCH_SHOW < 0) {
                 SWITCH_SHOW = 0;
-                telemetry.clearAll();
-                dashboard.clearTelemetry();
+//                telemetry.clearAll();
+//                dashboard.clearTelemetry();
             }
-            if (SWITCH_SHOW > 0 && SWITCH_SHOW < 4) {
+            if (SWITCH_SHOW >= 0 && SWITCH_SHOW < 4) {
+                KoalaLog.log("GPTgt", targetAngle, true);
                 KoalaLog.log("WheelDegs" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].wheelDegs, true);
                 KoalaLog.log("AngleVel" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].getState().speedMetersPerSecond, true);
-                KoalaLog.log("TgtAngle" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].newState.angle.getDegrees(), true);
                 KoalaLog.log("OrigTgtAngle" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].origState.angle.getDegrees(), true);
                 KoalaLog.log("AnglePID" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].pidout, true);
                 KoalaLog.log("AngleVolts" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].getPotVolts(), true);
+                KoalaLog.log("Speed" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].newState.speedMetersPerSecond, true);
 
-                telemetry.update();
+                //telemetry.update();
             }
         }
 

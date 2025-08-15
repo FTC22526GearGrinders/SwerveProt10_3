@@ -217,6 +217,11 @@ public class SwerveDrive extends SubsystemBase {
         modules[module].setAngleKD(val);
     }
 
+    public void setMAX_ANGLE_PID(int module, double val) {
+        modules[module].setAnglePIDMAX(val);
+
+    }
+
     public double getModuleDriveKP(int module) {
         return modules[module].getDriveKP();
     }
