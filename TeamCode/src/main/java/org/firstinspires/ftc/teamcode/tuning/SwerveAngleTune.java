@@ -40,9 +40,8 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.drive.SwerveDrive;
 import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
+import org.firstinspires.ftc.teamcode.utils.AverageFilter;
 
-import Ori.Coval.Logging.AutoLogManager;
-import Ori.Coval.Logging.Logger.KoalaLog;
 
 
 /*
@@ -61,30 +60,30 @@ import Ori.Coval.Logging.Logger.KoalaLog;
 
 @TeleOp(name = "SwerveAngleTune", group = "Tune")
 //@Disabled
-//@AutoLog
+
 @Config
 public class SwerveAngleTune extends CommandOpMode {
 
     // Declare OpMode members.
 
-    public static double[] ANGLEKP = {.02, .02, .02, .02};
+    public static double[] ANGLEKP = {.015, .015, .015, .015};
     public static double[] ANGLEKI = {.00, .0, .0, .0};
-    public static double[] ANGLEKD = {0.75, .75, .750, .75};
-    public static double MAX_ANGLE_PID = .1;
-    public static double SWITCH_SHOW = 0;
+    public static double[] ANGLEKD = {0., .0, .0, .0};
+    public static double MAX_ANGLE_PID = .2;
     public static boolean ALL_SAME = true;
-
+    public static double SERVO_ZERO_OFFSET = .005;
+    public static double SERVO_POWER_SET = 0;
     SwerveDrive swerveDrive;
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
     FtcDashboard dashboard;
     double targetAngle;
-
-    double lastShow = 0;
+    double driveSpeed;
+    private AverageFilter aveFilter = new AverageFilter();
 
     @Override
     public void initialize() {
-        KoalaLog.setup(hardwareMap);
+
         swerveDrive = new SwerveDrive(this);
         dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
@@ -101,7 +100,7 @@ public class SwerveAngleTune extends CommandOpMode {
         while (opModeIsActive()) {
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
-            AutoLogManager.periodic();
+
             if (ALL_SAME && (ANGLEKP[0] != ANGLEKP[1] || ANGLEKI[0] != ANGLEKI[1] || ANGLEKD[0] != ANGLEKD[1])) {
                 for (int i = 1; i < swerveDrive.modules.length; i++) {
                     ANGLEKP[i] = ANGLEKP[0];
@@ -110,17 +109,32 @@ public class SwerveAngleTune extends CommandOpMode {
                 }
             }
             if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
-
                 for (int i = 0; i < swerveDrive.modules.length; i++) {
-                    swerveDrive.setModuleAngleKP(i, ANGLEKP[i]);
-                    swerveDrive.setModuleAngleKI(i, ANGLEKI[i]);
-                    swerveDrive.setModuleAngleKD(i, ANGLEKD[i]);
+                    swerveDrive.setModuleThetaAngleKP(i, ANGLEKP[i]);
+//                    swerveDrive.setModuleThetaAngleKI(i, ANGLEKI[i]);
+//                    swerveDrive.setModuleAngleKD(i, ANGLEKD[i]);
                     swerveDrive.setMAX_ANGLE_PID(i, MAX_ANGLE_PID);
                 }
             }
-            double driveSpeed = gamepad1.left_stick_y * SwerveDriveConstants.maxSpeedMetersPerSec;
+
 
             swerveDrive.setModuleStates(new SwerveModuleState(driveSpeed, Rotation2d.fromDegrees(targetAngle)));
+
+
+
+            if (currentGamepad1.back) {
+                driveSpeed = gamepad1.left_stick_y * SwerveDriveConstants.maxSpeedMetersPerSec;
+                swerveDrive.modules[0].driveMotor.setPower(driveSpeed);
+                swerveDrive.modules[1].driveMotor.setPower(driveSpeed);
+                swerveDrive.modules[2].driveMotor.setPower(driveSpeed);
+                swerveDrive.modules[3].driveMotor.setPower(driveSpeed);
+            } else {
+                driveSpeed = 0;
+                swerveDrive.modules[0].driveMotor.setPower(driveSpeed);
+                swerveDrive.modules[1].driveMotor.setPower(driveSpeed);
+                swerveDrive.modules[2].driveMotor.setPower(driveSpeed);
+                swerveDrive.modules[3].driveMotor.setPower(driveSpeed);
+            }
 
             if (currentGamepad1.a) {
                 targetAngle = 0;
@@ -138,44 +152,48 @@ public class SwerveAngleTune extends CommandOpMode {
                 targetAngle = 45;
             }
             if (currentGamepad1.dpad_right) {
-                targetAngle = 60;
+                targetAngle = 70;
             }
             if (currentGamepad1.dpad_up) {
-                targetAngle = 30;
+
+                for (int i = 0; i < swerveDrive.modules.length; i++) {
+                    swerveDrive.setModuleAnglePower(i, SERVO_POWER_SET + SERVO_ZERO_OFFSET);
+                }
             }
+            if (!currentGamepad1.dpad_up && previousGamepad1.dpad_up) {
+                for (int i = 0; i < swerveDrive.modules.length; i++) {
+                    swerveDrive.setModuleAnglePower(i, 0);
+                }
+            }
+
             if (currentGamepad1.dpad_down) {
-                targetAngle = 750;
+
+                for (int i = 0; i < swerveDrive.modules.length; i++) {
+                    swerveDrive.setModuleAnglePower(i, -SERVO_POWER_SET + SERVO_ZERO_OFFSET);
+                }
+            }
+            if (!currentGamepad1.dpad_down && previousGamepad1.dpad_down) {
+                for (int i = 0; i < swerveDrive.modules.length; i++) {
+                    swerveDrive.setModuleAnglePower(i, 0);
+                }
+            }
+
+            aveFilter.addReading(swerveDrive.modules[0].lastPotSpeed = swerveDrive.modules[0].getSpeedFromPot());
+            telemetry.addData("Angle0", swerveDrive.modules[0].getState().angle.getDegrees());
+            telemetry.addData("Angle1", swerveDrive.modules[1].getState().angle.getDegrees());
+            telemetry.addData("Target", targetAngle);
+
+            telemetry.addData("Angle2", swerveDrive.modules[2].getState().angle.getDegrees());
+            telemetry.addData("Angle3", swerveDrive.modules[3].getState().angle.getDegrees());
+            telemetry.addData("PIDOUT0", swerveDrive.modules[0].pidout);
+            telemetry.addData("PotSpeed", aveFilter.getAverage());
+            telemetry.addData("ServoPower", swerveDrive.modules[0].angleServo.getPower());
+            telemetry.addData("PotVolts", swerveDrive.modules[0].getPotVolts());
 
 
-            }
-            if (SWITCH_SHOW != lastShow) {
-                telemetry.clearAll();
-                lastShow = SWITCH_SHOW;
-            }
-
-            if (SWITCH_SHOW > 3 || SWITCH_SHOW < 0) {
-                SWITCH_SHOW = 0;
-//                telemetry.clearAll();
-//                dashboard.clearTelemetry();
-            }
-            if (SWITCH_SHOW >= 0 && SWITCH_SHOW < 4) {
-                KoalaLog.log("GPTgt", targetAngle, true);
-                KoalaLog.log("WheelDegs" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].wheelDegs, true);
-                KoalaLog.log("AngleVel" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].getState().speedMetersPerSecond, true);
-                KoalaLog.log("OrigTgtAngle" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].origState.angle.getDegrees(), true);
-                KoalaLog.log("AnglePID" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].pidout, true);
-                KoalaLog.log("AngleVolts" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].getPotVolts(), true);
-                KoalaLog.log("Speed" + String.valueOf(SWITCH_SHOW), swerveDrive.modules[(int) SWITCH_SHOW].newState.speedMetersPerSecond, true);
-
-                //telemetry.update();
-            }
+            telemetry.update();
         }
-
-
     }
 }
-
-
-
 
 

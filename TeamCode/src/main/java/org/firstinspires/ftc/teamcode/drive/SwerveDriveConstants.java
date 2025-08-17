@@ -20,7 +20,9 @@ public final class SwerveDriveConstants {
     public static final double maxAccelerationMPSPS = maxSpeedMetersPerSec * 2;
     public static double calcKV = 12 / maxSpeedMetersPerSec;//approx 5
 
-    public static final double maxRadiansPerSecond = (Math.PI / 3) / (.14); //servo specs .14 secs per 60 degrees 4.8 volts approx 7
+    public static final double maxAngleRevsPerSecond = 1/ 6*(.14 ); //servo specs .14 secs per 60 degrees 4.8 volts .84 sec per rev = 1.2 revs per sec
+
+    public static final double maxAngleRadiansPerSecond = maxAngleRevsPerSecond *2*Math.PI;
 
     public static final double trackWidth = 11.5;
     public static final double wheelBase = 12.5;

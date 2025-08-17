@@ -33,8 +33,6 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.command.CommandOpMode;
-import com.arcrobotics.ftclib.geometry.Rotation2d;
-import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveModuleState;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
@@ -135,7 +133,7 @@ public class SwerveDriveTune extends CommandOpMode {
             if (currentGamepad1.dpad_left)
                 finalDriveSpeed = driveSpeed;
 
-            swerveDrive.drive(finalDriveSpeed,0,0,true);
+            swerveDrive.drive(finalDriveSpeed, 0, 0, true);
 
 
             if (currentGamepad1.dpad_up) {
@@ -176,7 +174,7 @@ public class SwerveDriveTune extends CommandOpMode {
                 telemetry.addData("DrivePower", swerveDrive.modules[0].getDrivePower());
                 telemetry.addData("TargetSpeed", swerveDrive.modules[0].getTargetMPS());
             } else {
-                telemetry.addData("CommandVel", driveSpeed);
+
                 telemetry.addData("FLDriveVel", swerveDrive.modules[0].getState().speedMetersPerSecond);
                 telemetry.addData("FRDriveVel", swerveDrive.modules[1].getState().speedMetersPerSecond);
                 telemetry.addData("BLDriveVel", swerveDrive.modules[2].getState().speedMetersPerSecond);

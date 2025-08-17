@@ -11,18 +11,12 @@ import com.arcrobotics.ftclib.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
-import org.firstinspires.ftc.teamcode.drive.RunTrajectoryCommand;
 import org.firstinspires.ftc.teamcode.utils.Drawing;
-import org.firstinspires.ftc.teamcode.utils.Trajectories;
-
-import Ori.Coval.Logging.AutoLog;
-import Ori.Coval.Logging.AutoLogManager;
-import Ori.Coval.Logging.Logger.KoalaLog;
 
 
 @TeleOp(name = "FullSwerveSim", group = "Sim")
 @Config
-//@AutoLog
+
 public class FullSwerveDriveOpModeSim extends CommandOpMode {
     public static boolean RUNT;
     //  public Telemetry telemetry;
@@ -40,7 +34,6 @@ public class FullSwerveDriveOpModeSim extends CommandOpMode {
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
-        KoalaLog.setup(hardwareMap);
     }
 
     @Override
@@ -49,7 +42,6 @@ public class FullSwerveDriveOpModeSim extends CommandOpMode {
         waitForStart();
         while (opModeIsActive()) {
             run();
-            AutoLogManager.periodic();
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
 
@@ -81,7 +73,6 @@ public class FullSwerveDriveOpModeSim extends CommandOpMode {
 
             if (currentGamepad1.y && !previousGamepad1.y) {
             }
-
 
 
             TelemetryPacket packet = new TelemetryPacket();

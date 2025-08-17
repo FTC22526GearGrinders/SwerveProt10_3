@@ -67,7 +67,7 @@ public class SwerveDriveSim extends SubsystemBase {
 
         double new_translation = translation * SwerveDriveConstants.maxSpeedMetersPerSec;
         double new_strafe = strafe * SwerveDriveConstants.maxSpeedMetersPerSec;
-        double new_rotation = rotation * SwerveDriveConstants.maxRadiansPerSecond * SwerveDriveConstants.rotationMultiplier;
+        double new_rotation = rotation * SwerveDriveConstants.maxAngleRadiansPerSecond * SwerveDriveConstants.rotationMultiplier;
 
         speeds = fieldRelative
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(new_translation, new_strafe, new_rotation, getHeading())

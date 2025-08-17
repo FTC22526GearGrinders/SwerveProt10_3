@@ -15,28 +15,24 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.utils.AverageFilter;
 import org.firstinspires.ftc.teamcode.utils.Units;
 
-import Ori.Coval.Logging.Logger.KoalaLog;
 
-//@AutoLog
 public class SwerveModule extends SubsystemBase {
 
     private final PIDControllerFRC driveController = new PIDControllerFRC(0.01, 0, 0, .02);
 
     private final PIDControllerFRC angleController = new PIDControllerFRC(.015, 0.0, 0., 0.02);
-    TrapezoidProfile.Constraints constraints = new TrapezoidProfile.Constraints(
-            25, 30);
-    private final ProfiledPIDController thetapidController = new ProfiledPIDController(.02, 0, 0, constraints);
-
-    private final boolean showTelemetry = false;
     private final boolean log = false;
     private final double acceLimit = 5;
     private final double powerLimit = 1;
     private final double ks = 0;
     private final double ka = 0;
+    public int showTelemetry = 0;
     public CRServo angleServo;
     public DcMotorEx driveMotor;
     public AnalogInput servoPotentiometer;
@@ -45,13 +41,18 @@ public class SwerveModule extends SubsystemBase {
     public int moduleNumber;
     public Telemetry telemetry;
     public double setpoint = 0;
-    public double anglePID = 0;
+
     public double wheelDegs = 0;
     public double pidout;
     public double feedForwardVolts;
     public SwerveModuleState newState = new SwerveModuleState();
     public SwerveModuleState origState = new SwerveModuleState();
     public double sampleCount;
+    public double MAX_ANGLE_PID = .2;
+    public double lastPotSpeed;
+    TrapezoidProfile.Constraints constraints = new TrapezoidProfile.Constraints(
+            50, 100);
+    private final ProfiledPIDController thetapidController = new ProfiledPIDController(.01, 0, 0, constraints);
     double volts;
     boolean optimized;
     private boolean lockReadPot;
@@ -59,8 +60,9 @@ public class SwerveModule extends SubsystemBase {
     private double lastSpeed;
     private double pidOut;
     private double potAngle;
-    public double MAX_ANGLE_PID=.1;
-
+    private ElapsedTime potTimer = new ElapsedTime();
+    private double lastAngle;
+    private double lastPotReadTime;
 
     public SwerveModule(SwerveModuleConfig config, CommandOpMode opMode) {
         driveMotor = opMode.hardwareMap.get(DcMotorEx.class, config.driveMotorName);
@@ -114,6 +116,10 @@ public class SwerveModule extends SubsystemBase {
         angleController.setP(val);
     }
 
+    public void setThetsAngleKP(double val) {
+        thetapidController.setP(val);
+    }
+
     public double getAngleKI() {
         return angleController.getI();
     }
@@ -135,7 +141,7 @@ public class SwerveModule extends SubsystemBase {
     }
 
     public void setAnglePIDMAX(double val) {
-        MAX_ANGLE_PID=val;
+        MAX_ANGLE_PID = val;
     }
 
     public double getDriveKP() {
@@ -165,7 +171,7 @@ public class SwerveModule extends SubsystemBase {
     public void setSpeedOpenLoop(SwerveModuleState state) {
         double power = state.speedMetersPerSecond / SwerveDriveConstants.maxSpeedMetersPerSec;
         double clampedPower = MathUtils.clamp(power, -powerLimit, powerLimit);
-        driveMotor.setPower(clampedPower); //-1.0 to 1.0
+        driveMotor.setPower(clampedPower);
     }
 
     public void setSpeedClosedLoop(SwerveModuleState state) {
@@ -198,24 +204,24 @@ public class SwerveModule extends SubsystemBase {
         if (pidout > MAX_ANGLE_PID) pidout = MAX_ANGLE_PID;
         if (pidout < -MAX_ANGLE_PID) pidout = -MAX_ANGLE_PID;
 
-        anglePID = pidout;
-
         angleServo.setPower(pidout);
+    }
+
+    public void setServoPower(double val) {
+        angleServo.setPower(val);
     }
 
     public void setAngleTrapezoid(SwerveModuleState state) {
         setpoint = state.angle.getDegrees();
-
-        double pidout =
-                thetapidController.calculate(
-                        wheelDegs, setpoint);
-
+        pidout = thetapidController.calculate(
+                wheelDegs);
+        if (pidout > MAX_ANGLE_PID) pidout = MAX_ANGLE_PID;
+        if (pidout < -MAX_ANGLE_PID) pidout = -MAX_ANGLE_PID;
         angleServo.setPower(pidout);
     }
 
 
-
-        public SwerveModuleState getState() {
+    public SwerveModuleState getState() {
         double speedMetersPerSecond = getWheelSpeedMPS();
         double angleRadians = getWheelAngleRad();
         return new SwerveModuleState(speedMetersPerSecond, new Rotation2d(angleRadians));
@@ -226,18 +232,29 @@ public class SwerveModule extends SubsystemBase {
         if (state.angle.getDegrees() != origState.angle.getDegrees()) {
             newState = SwerveModuleState.optimize(state, Rotation2d.fromDegrees(wheelDegs));
             origState = state;
-
         }
-
         if (openLoop)
             setSpeedOpenLoop(newState);
         else
             setSpeedClosedLoop(newState);
 
+        setAngleTrapezoid(newState);
+        // setAngle(newState);
+    }
 
-        setAngle(newState);
-
-
+    public double getSpeedFromPot() {
+        boolean plusDirection = angleServo.getPower() > 0;
+        double absAngle = Math.abs(getWheelAngleDeg());//force angle positive
+        double readTime = potTimer.milliseconds();
+        double angleChange = Math.abs(absAngle - lastAngle);
+        double timeChange = lastPotReadTime - readTime;
+        lastAngle = absAngle;
+        lastPotReadTime = readTime;
+        double speed = 0;
+        //if angle crosses zero between reads then add 180 to compensagte
+        if (lastAngle > absAngle) angleChange += 180;
+        speed = angleChange / timeChange;
+        return speed;
     }
 
     public void setOpenLoop(boolean val) {
@@ -259,7 +276,6 @@ public class SwerveModule extends SubsystemBase {
     double getWheelAngleDeg() {
         volts = servoPotentiometer.getVoltage();
         potAngle = round2dp(volts * 360 / 3.3, 2);
-
         return Math.round(Math.IEEEremainder((potAngle + angleOffset), 360));
     }
 
@@ -277,38 +293,6 @@ public class SwerveModule extends SubsystemBase {
 
     @Override
     public void periodic() {
-
-        if (log) {
-            KoalaLog.log("TargetDegreesOrig" + moduleNumber, origState.angle.getDegrees(), true);
-            KoalaLog.log("TargetDegreesOpt" + moduleNumber, newState.angle.getDegrees(), true);
-            KoalaLog.log("CurrentDegrees" + moduleNumber, wheelDegs, true);
-            KoalaLog.log("Volts" + moduleNumber, volts, true);
-            KoalaLog.log("PIDOut" + moduleNumber, anglePID, true);
-            KoalaLog.log("POTAngle" + moduleNumber, potAngle, true);
-
-//            KoalaLog.log("DrivePower" + moduleNumber, getDrivePower());
-//            KoalaLog.log("DriveSpeed" + moduleNumber, getTargetMPS());
-//            KoalaLog.log("DrivePosition" + moduleNumber, getWheelPosition());
-//            KoalaLog.log("DriveTicks" + moduleNumber, driveMotor.getCurrentPosition());
-
-        }
-
-        if (showTelemetry) {
-            telemetry.addData("TargetDegreesOrig" + moduleNumber, origState.angle.getDegrees());
-            telemetry.addData("TargetDegreesOpt" + moduleNumber, newState.angle.getDegrees());
-            telemetry.addData("CurrentDegrees" + moduleNumber, wheelDegs);
-            telemetry.addData("Volts" + moduleNumber, volts);
-            telemetry.addData("PIDOut" + moduleNumber, anglePID);
-            telemetry.addData("POTAngle" + moduleNumber, potAngle);
-            telemetry.update();
-//            KoalaLog.log("DrivePower" + moduleNumber, getDrivePower());
-//            KoalaLog.log("DriveSpeed" + moduleNumber, getTargetMPS());
-//            KoalaLog.log("DrivePosition" + moduleNumber, getWheelPosition());
-//            KoalaLog.log("DriveTicks" + moduleNumber, driveMotor.getCurrentPosition());
-
-        }
-
-
         if (angleController.atSetpoint()) {
             angleServo.setPower(0);
         }

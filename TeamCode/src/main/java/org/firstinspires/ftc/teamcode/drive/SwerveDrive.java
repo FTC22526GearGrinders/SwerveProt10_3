@@ -23,6 +23,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.utils.Units;
 
 
+
 public class SwerveDrive extends SubsystemBase {
     public final SwerveModule[] modules;
     final ElapsedTime timer = new ElapsedTime();
@@ -30,7 +31,7 @@ public class SwerveDrive extends SubsystemBase {
     private final SwerveDriveOdometry m_odometry;
     public Telemetry telemetry;
     public boolean openLoop;
-
+    public double showTelemetry = 0;
     private Pose2d robotPose = new Pose2d();
 
     public SwerveDrive(CommandOpMode opMode) {
@@ -74,7 +75,7 @@ public class SwerveDrive extends SubsystemBase {
 
         double new_translation = translation * SwerveDriveConstants.maxSpeedMetersPerSec;
         double new_strafe = strafe * SwerveDriveConstants.maxSpeedMetersPerSec;
-        double new_rotation = rotation * SwerveDriveConstants.maxRadiansPerSecond * SwerveDriveConstants.rotationMultiplier;
+        double new_rotation = rotation * SwerveDriveConstants.maxAngleRadiansPerSecond * SwerveDriveConstants.rotationMultiplier;
 
         ChassisSpeeds speeds = fieldRelative
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(new_translation, new_strafe, new_rotation, getHeading())
@@ -154,15 +155,9 @@ public class SwerveDrive extends SubsystemBase {
 
         robotPose = updateOdometry();
 
-        YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
-        telemetry.addData("Heading", angles.getYaw(AngleUnit.DEGREES));
-//        telemetry.addData("Roll", angles.getRoll(AngleUnit.DEGREES));
-//        telemetry.addData("Pitch", angles.getPitch(AngleUnit.DEGREES));
-//        telemetry.addData("TPI", SwerveDriveConstants.TICKS_PER_INCH);
-//        telemetry.addData("TPM", SwerveDriveConstants.TICKS_PER_METER);
 
-        telemetry.addData("X", robotPose.getX());
-        telemetry.addData("Y", robotPose.getY());
+
+        showTelemetry();
 
     }
 
@@ -199,6 +194,12 @@ public class SwerveDrive extends SubsystemBase {
 
     public void setModuleAngleKP(int module, double val) {
         modules[module].setAngleKP(val);
+    }
+    public void setModuleThetaAngleKP(int module, double val) {
+        modules[module].setThetsAngleKP(val);
+    }
+    public void setModuleAnglePower(int module,double val) {
+        modules[module].setServoPower(val);
     }
 
     public double getModuleAngleKI(int module) {
@@ -258,12 +259,21 @@ public class SwerveDrive extends SubsystemBase {
         // thetapidController.setPID(pval, ival, dval);
     }
 
-    public void showAngleValues() {
-        telemetry.addData("FLAngle", 911);
-
+    public void showTelemetry() {
+        YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
+        telemetry.addData("WheelDegrees" + String.valueOf(showTelemetry),modules[(int)showTelemetry].wheelDegs);
+        telemetry.addData("AngleVel" + String.valueOf(showTelemetry), modules[(int) showTelemetry].getState().speedMetersPerSecond);
+        telemetry.addData("OrigTgtAngle" + String.valueOf(showTelemetry), modules[(int) showTelemetry].origState.angle.getDegrees());
+        telemetry.addData("AnglePID" + String.valueOf(showTelemetry), modules[(int) showTelemetry].pidout);
+        telemetry.addData("AngleVolts" + String.valueOf(showTelemetry), modules[(int) showTelemetry].getPotVolts());
+        telemetry.addData("Speed" + String.valueOf(showTelemetry), modules[(int) showTelemetry].newState.speedMetersPerSecond);
+//        telemetry.addData("Heading", angles.getYaw(AngleUnit.DEGREES));
+////        telemetry.addData("Roll", angles.getRoll(AngleUnit.DEGREES));
+////        telemetry.addData("Pitch", angles.getPitch(AngleUnit.DEGREES));
+//
+//        telemetry.addData("X", robotPose.getX());
+//        telemetry.addData("Y", robotPose.getY());
         telemetry.update();
-
-
     }
 
 }
