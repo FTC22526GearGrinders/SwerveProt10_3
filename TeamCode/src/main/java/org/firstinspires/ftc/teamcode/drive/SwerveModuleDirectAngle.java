@@ -12,16 +12,16 @@ import com.arcrobotics.ftclib.geometry.Rotation2d;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveModuleState;
 import com.arcrobotics.ftclib.trajectory.TrapezoidProfile;
 import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.utils.Units;
 
 
-public class SwerveModule extends SubsystemBase {
+public class SwerveModuleDirectAngle extends SubsystemBase {
 
     private final PIDControllerFRC driveController = new PIDControllerFRC(0.01, 0, 0, .02);
     private final PIDControllerFRC angleController = new PIDControllerFRC(.015, 0.0, 0., 0.02);
@@ -33,7 +33,7 @@ public class SwerveModule extends SubsystemBase {
             50, 100);
     private final ProfiledPIDController thetapidController = new ProfiledPIDController(.01, 0, 0, constraints);
     public int showTelemetry = 0;
-    public CRServo angleServo;
+    public Servo angleServo;
     public DcMotorEx driveMotor;
     public AnalogInput servoPotentiometer;
     public double angleOffset;
@@ -70,7 +70,7 @@ public class SwerveModule extends SubsystemBase {
     private double potAngle;
 
 
-    public SwerveModule(SwerveModuleConfig config, CommandOpMode opMode) {
+    public SwerveModuleDirectAngle(SwerveModuleConfig config, CommandOpMode opMode) {
         driveMotor = opMode.hardwareMap.get(DcMotorEx.class, config.driveMotorName);
 
         driveMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -78,9 +78,9 @@ public class SwerveModule extends SubsystemBase {
 
         createFeedForward(ks, SwerveDriveConstants.calcKV, ka);
 
-        angleServo = opMode.hardwareMap.get(CRServo.class, config.angleServoName);
+        angleServo = opMode.hardwareMap.get(Servo.class, config.angleServoName);
 
-        angleServo.setDirection(config.angleReverse);
+        angleServo.setDirection(Servo.Direction.REVERSE);
 
         servoPotentiometer = opMode.hardwareMap.get(AnalogInput.class, config.absoluteEncoderName);
 
@@ -208,27 +208,21 @@ public class SwerveModule extends SubsystemBase {
 
     public void setAngle(SwerveModuleState state) {
 
-
         setpoint = state.angle.getDegrees();
 
         lastSetpoint = setpoint;
 
-        angleController.setSetpoint(setpoint);
+        double servoAngle = setpoint / 180;
 
-        pidout = angleController.calculate(wheelDegs, setpoint);
-
-        if (pidout > MAX_ANGLE_PID) pidout = MAX_ANGLE_PID;
-        if (pidout < -MAX_ANGLE_PID) pidout = -MAX_ANGLE_PID;
-
-        angleServo.setPower(pidout);
+        angleServo.setPosition(servoAngle);
     }
 
-    public double getServoPower() {
-        return angleServo.getPower();
+    public double getServoPosition() {
+        return angleServo.getPosition();
     }
 
-    public void setServoPower(double val) {
-        angleServo.setPower(val);
+    public void setServoPosition(double val) {
+        angleServo.setPosition(val);
     }
 
     public void setAngleTrapezoid(SwerveModuleState state) {
@@ -248,10 +242,7 @@ public class SwerveModule extends SubsystemBase {
 
         telemetry.addData("PERR", perr);
 
-        pidout = thetapidController.calculate(
-                wheelDegs, goal.position);
 
-        angleServo.setPower(pidout);
     }
 
 
@@ -272,8 +263,7 @@ public class SwerveModule extends SubsystemBase {
         else
             setSpeedClosedLoop(newState);
 
-            setAngleTrapezoid(newState);
-        //  setAngle(newState);
+        setAngle(newState);
 
     }
 
@@ -327,9 +317,7 @@ public class SwerveModule extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (angleController.atSetpoint()) {
-            angleServo.setPower(0);
-        }
+
     }
 
 

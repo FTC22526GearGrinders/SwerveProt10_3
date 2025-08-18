@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive;
+package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -20,12 +20,14 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
+import org.firstinspires.ftc.teamcode.drive.SwerveModuleConfig;
+import org.firstinspires.ftc.teamcode.drive.SwerveModuleDirectAngle;
 import org.firstinspires.ftc.teamcode.utils.Units;
 
 
-
-public class SwerveDrive extends SubsystemBase {
-    public final SwerveModule[] modules;
+public class SwerveDriveDirectAngle extends SubsystemBase {
+    public final SwerveModuleDirectAngle[] modules;
 
     final ElapsedTime timer = new ElapsedTime();
     private final BHI260IMU imu;
@@ -35,7 +37,7 @@ public class SwerveDrive extends SubsystemBase {
     public double showTelemetry = 0;
     private Pose2d robotPose = new Pose2d();
 
-    public SwerveDrive(CommandOpMode opMode) {
+    public SwerveDriveDirectAngle(CommandOpMode opMode) {
         SwerveModuleConfig fl = new SwerveModuleConfig(0,
                 "driveMotor1", "angleServo1", "angleInput1", 117.27, DcMotorSimple.Direction.REVERSE);
 
@@ -48,11 +50,11 @@ public class SwerveDrive extends SubsystemBase {
         SwerveModuleConfig br = new SwerveModuleConfig(3,
                 "driveMotor4", "angleServo4", "angleInput4", -50.8, DcMotorSimple.Direction.REVERSE);
 
-        modules = new SwerveModule[]{
-                new SwerveModule(fl, opMode),
-                new SwerveModule(fr, opMode),
-                new SwerveModule(bl, opMode),
-                new SwerveModule(br, opMode)
+        modules = new SwerveModuleDirectAngle[]{
+                new SwerveModuleDirectAngle(fl, opMode),
+                new SwerveModuleDirectAngle(fr, opMode),
+                new SwerveModuleDirectAngle(bl, opMode),
+                new SwerveModuleDirectAngle(br, opMode)
         };
 
 
@@ -102,19 +104,19 @@ public class SwerveDrive extends SubsystemBase {
 
         SwerveDriveKinematics.normalizeWheelSpeeds(states, SwerveDriveConstants.maxSpeedMetersPerSec);
 
-        for (SwerveModule module : modules) {
+        for (SwerveModuleDirectAngle module : modules) {
             module.setState(states[module.moduleNumber]);
         }
     }
 
     public void setModuleStates(SwerveModuleState state) {
-        for (SwerveModule module : modules) {
+        for (SwerveModuleDirectAngle module : modules) {
             module.setState(state);
         }
     }
 
     public void setModuleOpenloop(boolean val) {
-        for (SwerveModule module : modules) {
+        for (SwerveModuleDirectAngle module : modules) {
             module.setOpenLoop(val);
         }
         openLoop = val;
@@ -158,7 +160,6 @@ public class SwerveDrive extends SubsystemBase {
         robotPose = updateOdometry();
 
 
-
         showTelemetry();
 
     }
@@ -197,22 +198,19 @@ public class SwerveDrive extends SubsystemBase {
     public void setModuleAngleKP(int module, double val) {
         modules[module].setAngleKP(val);
     }
+
     public void setModuleThetaAngleKP(int module, double val) {
         modules[module].setThetsAngleKP(val);
     }
+
     public void setModuleThetaAngleKI(int module, double val) {
         modules[module].setThetsAngleKI(val);
     }
+
     public void setModuleThetaAngleKD(int module, double val) {
         modules[module].setThetsAngleKD(val);
     }
 
-
-
-
-    public void setModuleAnglePower(int module,double val) {
-        modules[module].setServoPower(val);
-    }
 
     public double getModuleAngleKI(int module) {
         return modules[module].getAngleKI();
@@ -273,7 +271,7 @@ public class SwerveDrive extends SubsystemBase {
 
     public void showTelemetry() {
         YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
-        telemetry.addData("WheelDegrees" + String.valueOf(showTelemetry),modules[(int)showTelemetry].wheelDegs);
+        telemetry.addData("WheelDegrees" + String.valueOf(showTelemetry), modules[(int) showTelemetry].wheelDegs);
         telemetry.addData("AngleVel" + String.valueOf(showTelemetry), modules[(int) showTelemetry].getState().speedMetersPerSecond);
         telemetry.addData("OrigTgtAngle" + String.valueOf(showTelemetry), modules[(int) showTelemetry].origState.angle.getDegrees());
         telemetry.addData("AnglePID" + String.valueOf(showTelemetry), modules[(int) showTelemetry].pidout);

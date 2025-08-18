@@ -36,6 +36,7 @@ import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import org.firstinspires.ftc.teamcode.SwerveDriveDirectAngle;
 import org.firstinspires.ftc.teamcode.drive.SwerveDrive;
 import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
 import org.firstinspires.ftc.teamcode.utils.AverageFilter;
@@ -63,7 +64,7 @@ import Ori.Coval.Logging.Logger.KoalaLog;
 //@Disabled
 
 @Config
-public class SwerveAngleTune extends CommandOpMode {
+public class SwerveDirectAngleTune extends CommandOpMode {
 
     // Declare OpMode members.
 
@@ -74,7 +75,7 @@ public class SwerveAngleTune extends CommandOpMode {
     public static boolean ALL_SAME = true;
     public static double SERVO_ZERO_OFFSET = .005;
     public static double SERVO_POWER_SET = 0;
-    SwerveDrive swerveDrive;
+    SwerveDriveDirectAngle swerveDrive;
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
     FtcDashboard dashboard;
@@ -85,7 +86,7 @@ public    int modNum = 1;
     @Override
     public void initialize() {
 
-        swerveDrive = new SwerveDrive(this);
+        swerveDrive = new SwerveDriveDirectAngle(this);
         dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
         register(swerveDrive);
@@ -145,11 +146,11 @@ public    int modNum = 1;
                 targetAngle = 90;
             }
             if (currentGamepad1.x && !previousGamepad1.x) {
-                SERVO_POWER_SET -= .01;
+                targetAngle=180;
 
             }
             if (currentGamepad1.y && !previousGamepad1.y) {
-                SERVO_POWER_SET += .01;
+               targetAngle=-90;
 
             }
             if (currentGamepad1.dpad_left) {
@@ -158,41 +159,23 @@ public    int modNum = 1;
             if (currentGamepad1.dpad_right) {
                 targetAngle = 70;
             }
-            if (currentGamepad1.dpad_up) {
 
-                for (int i = 0; i < swerveDrive.modules.length; i++) {
-                    swerveDrive.setModuleAnglePower(i, SERVO_POWER_SET + SERVO_ZERO_OFFSET);
-                }
-            }
             if (!currentGamepad1.dpad_up && previousGamepad1.dpad_up) {
-                for (int i = 0; i < swerveDrive.modules.length; i++) {
-                    swerveDrive.setModuleAnglePower(i, 0);
-                }
-                aveFilter.reset();
-            }
 
-            if (currentGamepad1.dpad_down) {
 
-                for (int i = 0; i < swerveDrive.modules.length; i++) {
-                    swerveDrive.setModuleAnglePower(i, -SERVO_POWER_SET + SERVO_ZERO_OFFSET);
-                }
-            }
-            if (!currentGamepad1.dpad_down && previousGamepad1.dpad_down) {
-                for (int i = 0; i < swerveDrive.modules.length; i++) {
-                    swerveDrive.setModuleAnglePower(i, 0);
-                }
-            }
+
+        }
             boolean log = true;
 
             double wheelDegs = swerveDrive.modules[modNum].getWheelAngleDeg();
             double millisec = swerveDrive.modules[modNum].potTimer.milliseconds();
-            double power =swerveDrive.modules[modNum].getServoPower() ;
+
             if (log) {
                 KoalaLog.log("Angle " + String.valueOf(modNum), wheelDegs, true);
 //                KoalaLog.log("Angle1", swerveDrive.modules[1].getState().angle.getDegrees(), true);
 //                KoalaLog.log("Angle2", swerveDrive.modules[2].getState().angle.getDegrees(), true);
 //                KoalaLog.log("Angle3", swerveDrive.modules[3].getState().angle.getDegrees(), true);
-                KoalaLog.log("Power " + String.valueOf(modNum),power , true);
+
                 KoalaLog.log("Millisec", millisec, true);
 //                KoalaLog.log("Power1", swerveDrive.modules[1].getServoPower(), true);
 //                KoalaLog.log("Power2", swerveDrive.modules[2].getServoPower(), true);
@@ -205,10 +188,10 @@ public    int modNum = 1;
                 telemetry.addData("Angle2", swerveDrive.modules[2].getWheelAngleDeg());
                 ;
                 telemetry.addData("Angle3", swerveDrive.modules[3].getWheelAngleDeg());
-                telemetry.addData("Power0", swerveDrive.modules[0].getServoPower());
-                telemetry.addData("Power1", swerveDrive.modules[1].getServoPower());
-                telemetry.addData("Power2", swerveDrive.modules[2].getServoPower());
-                telemetry.addData("Power3", swerveDrive.modules[3].getServoPower());
+                telemetry.addData("Power0", swerveDrive.modules[0].getServoPosition());
+                telemetry.addData("Power1", swerveDrive.modules[1].getServoPosition());
+                telemetry.addData("Power2", swerveDrive.modules[2].getServoPosition());
+                telemetry.addData("Power3", swerveDrive.modules[3].getServoPosition());
 
                 telemetry.update();
             }
