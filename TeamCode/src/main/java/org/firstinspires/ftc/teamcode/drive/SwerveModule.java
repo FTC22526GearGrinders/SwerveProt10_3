@@ -30,8 +30,8 @@ public class SwerveModule extends SubsystemBase {
     private final double ks = 0;
     private final double ka = 0;
     public TrapezoidProfile.Constraints constraints = new TrapezoidProfile.Constraints(
-            50, 100);
-    private final ProfiledPIDController thetapidController = new ProfiledPIDController(.01, 0, 0, constraints);
+            200, 200);
+    public final ProfiledPIDController thetapidController = new ProfiledPIDController(.01, 0, 0, constraints);
     public int showTelemetry = 0;
     public CRServo angleServo;
     public DcMotorEx driveMotor;
@@ -122,15 +122,15 @@ public class SwerveModule extends SubsystemBase {
         angleController.setP(val);
     }
 
-    public void setThetsAngleKP(double val) {
+    public void setThetaAngleKP(double val) {
         thetapidController.setP(val);
     }
 
-    public void setThetsAngleKI(double val) {
+    public void setThetaAngleKI(double val) {
         thetapidController.setI(val);
     }
 
-    public void setThetsAngleKD(double val) {
+    public void setThetaAngleKD(double val) {
         thetapidController.setD(val);
     }
 
@@ -244,14 +244,15 @@ public class SwerveModule extends SubsystemBase {
 
         double perr = thetapidController.getPositionError();
 
-        telemetry.addData("VERR", verr);
-
-        telemetry.addData("PERR", perr);
+//        telemetry.addData("VERR", verr);
+//
+//        telemetry.addData("PERR", perr);
 
         pidout = thetapidController.calculate(
                 wheelDegs, goal.position);
 
         angleServo.setPower(pidout);
+        //set PID to 0 when finding zero
     }
 
 
@@ -264,7 +265,7 @@ public class SwerveModule extends SubsystemBase {
     public void setState(SwerveModuleState state) {
         wheelDegs = getWheelAngleDeg();
         if (state.angle.getDegrees() != origState.angle.getDegrees()) {
-            newState = SwerveModuleState.optimize(state, Rotation2d.fromDegrees(wheelDegs));
+            newState = state;//SwerveModuleState.optimize(state, Rotation2d.fromDegrees(wheelDegs));
             origState = state;
         }
         if (openLoop)
@@ -272,7 +273,7 @@ public class SwerveModule extends SubsystemBase {
         else
             setSpeedClosedLoop(newState);
 
-            setAngleTrapezoid(newState);
+        setAngleTrapezoid(newState);
         //  setAngle(newState);
 
     }

@@ -37,16 +37,16 @@ public class SwerveDrive extends SubsystemBase {
 
     public SwerveDrive(CommandOpMode opMode) {
         SwerveModuleConfig fl = new SwerveModuleConfig(0,
-                "driveMotor1", "angleServo1", "angleInput1", 117.27, DcMotorSimple.Direction.REVERSE);
+                "driveMotor1", "angleServo1", "angleInput1", 154., DcMotorSimple.Direction.REVERSE);
 
         SwerveModuleConfig fr = new SwerveModuleConfig(1,
-                "driveMotor2", "angleServo2", "angleInput2", -141.38, DcMotorSimple.Direction.REVERSE);
+                "driveMotor2", "angleServo2", "angleInput2", 54.5, DcMotorSimple.Direction.REVERSE);
 
         SwerveModuleConfig bl = new SwerveModuleConfig(2,
-                "driveMotor3", "angleServo3", "angleInput3", -129.16, DcMotorSimple.Direction.REVERSE);
+                "driveMotor3", "angleServo3", "angleInput3", 169, DcMotorSimple.Direction.REVERSE);
 
         SwerveModuleConfig br = new SwerveModuleConfig(3,
-                "driveMotor4", "angleServo4", "angleInput4", -50.8, DcMotorSimple.Direction.REVERSE);
+                "driveMotor4", "angleServo4", "angleInput4", 147, DcMotorSimple.Direction.REVERSE);
 
         modules = new SwerveModule[]{
                 new SwerveModule(fl, opMode),
@@ -198,16 +198,14 @@ public class SwerveDrive extends SubsystemBase {
         modules[module].setAngleKP(val);
     }
     public void setModuleThetaAngleKP(int module, double val) {
-        modules[module].setThetsAngleKP(val);
+        modules[module].setThetaAngleKP(val);
     }
     public void setModuleThetaAngleKI(int module, double val) {
-        modules[module].setThetsAngleKI(val);
+        modules[module].setThetaAngleKI(val);
     }
     public void setModuleThetaAngleKD(int module, double val) {
-        modules[module].setThetsAngleKD(val);
+        modules[module].setThetaAngleKD(val);
     }
-
-
 
 
     public void setModuleAnglePower(int module,double val) {

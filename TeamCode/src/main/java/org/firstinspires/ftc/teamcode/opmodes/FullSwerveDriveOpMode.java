@@ -75,6 +75,18 @@ public class FullSwerveDriveOpMode extends CommandOpMode {
             Drawing.drawRobot(packet.fieldOverlay(), inchPose, telemetry);
             FtcDashboard.getInstance().sendTelemetryPacket(packet);
             telemetry.addData("Speed", swerveDrive.getStates()[0].speedMetersPerSecond);
+            telemetry.addData("Angle0", swerveDrive.modules[0].getWheelAngleDeg());
+
+
+            telemetry.addData("Angle1", swerveDrive.modules[1].getWheelAngleDeg());
+
+
+            telemetry.addData("Angle2", swerveDrive.modules[2].getWheelAngleDeg());
+
+
+            telemetry.addData("Angle3", swerveDrive.modules[3].getWheelAngleDeg());
+
+
             telemetry.update();
         }
     }
