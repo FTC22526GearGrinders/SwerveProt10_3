@@ -8,24 +8,25 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.geometry.Pose2d;
 import com.arcrobotics.ftclib.trajectory.Trajectory;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.drive.DriveCommand;
 import org.firstinspires.ftc.teamcode.drive.RunTrajectoryCommand;
+import org.firstinspires.ftc.teamcode.drive.RunTrajectoryCommandSwerve;
+import org.firstinspires.ftc.teamcode.drive.ServoDriveCommand;
 import org.firstinspires.ftc.teamcode.drive.SwerveDrive;
+import org.firstinspires.ftc.teamcode.drive.SwerveDriveServo;
 import org.firstinspires.ftc.teamcode.utils.Drawing;
 import org.firstinspires.ftc.teamcode.utils.Trajectories;
 
 
-@TeleOp(name = "FullSwerveTest", group = "Test")
+@TeleOp(name = "SwerveServoTest", group = "Test")
 @Config
-@Disabled
-public class FullSwerveDriveOpMode extends CommandOpMode {
+public class SwerveDriveServoOpMode extends CommandOpMode {
 
     //  public Telemetry telemetry;
-    SwerveDrive swerveDrive;
+    SwerveDriveServo swerveDrive;
     double speedDivisor = 2;
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
@@ -33,14 +34,15 @@ public class FullSwerveDriveOpMode extends CommandOpMode {
     Trajectory traj;
 
     public void initialize() {
-        swerveDrive = new SwerveDrive(this);
+        swerveDrive = new SwerveDriveServo(this);
         register(swerveDrive);
-        trajectories = new Trajectories();
+
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
         swerveDrive.setModuleOpenloop(false);
+
         swerveDrive.setDefaultCommand
-                (new DriveCommand(swerveDrive,
+                (new ServoDriveCommand(swerveDrive,
                         gamepad1,
                         true,
                         this));
@@ -67,7 +69,7 @@ public class FullSwerveDriveOpMode extends CommandOpMode {
             }
 
             if (currentGamepad1.x && !previousGamepad1.x) {
-                new RunTrajectoryCommand(swerveDrive, trajectories.crossLine, this).schedule();
+                new RunTrajectoryCommandSwerve(swerveDrive, trajectories.crossLine, this).schedule();
             }
 
 
@@ -78,6 +80,7 @@ public class FullSwerveDriveOpMode extends CommandOpMode {
             FtcDashboard.getInstance().sendTelemetryPacket(packet);
             telemetry.addData("Speed", swerveDrive.getStates()[0].speedMetersPerSecond);
             telemetry.addData("Angle0", swerveDrive.modules[0].getWheelAngleDeg());
+            telemetry.addData("Angle0Volts", swerveDrive.modules[0].getPotVolts());
 
 
             telemetry.addData("Angle1", swerveDrive.modules[1].getWheelAngleDeg());

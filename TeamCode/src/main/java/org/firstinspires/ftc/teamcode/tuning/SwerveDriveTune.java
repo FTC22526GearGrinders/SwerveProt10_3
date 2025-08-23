@@ -33,6 +33,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.command.CommandOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
@@ -55,7 +56,7 @@ import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
 
 
 @TeleOp(name = "SwerveDriveTune", group = "Tune")
-//@Disabled
+@Disabled
 @Config
 public class SwerveDriveTune extends CommandOpMode {
 

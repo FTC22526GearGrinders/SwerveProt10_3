@@ -35,14 +35,17 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.geometry.Rotation2d;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveModuleState;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import org.firstinspires.ftc.teamcode.drive.SwerveDrive;
 import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
-import org.firstinspires.ftc.teamcode.drive.SwerveModule;
-import org.firstinspires.ftc.teamcode.drive.SwerveModuleConfig;
+import org.firstinspires.ftc.teamcode.drive.SwerveDriveServo;
+import org.firstinspires.ftc.teamcode.utils.AverageFilter;
+
+import Ori.Coval.Logging.AutoLogManager;
+import Ori.Coval.Logging.Logger.KoalaLog;
+
 
 
 /*
@@ -59,107 +62,112 @@ import org.firstinspires.ftc.teamcode.drive.SwerveModuleConfig;
  */
 
 
-@TeleOp(name = "SingleDriveTune", group = "Tune1")
-@Disabled
-@Config
-public class SingleSwerveDriveTune extends CommandOpMode {
+@TeleOp(name = "SwerveAngleTune", group = "Tune")
+//@Disabled
 
-    public static double DRIVEKP = .01;
-    public static double DRIVEKI = .0;
-    public static double DRIVEKD = .0;
-    public static double DRIVEKS = .01;
-    public static double DRIVEKV = SwerveDriveConstants.calcKV;
-    public static double DRIVEKA = .0;
-    public static boolean OPENLOOP = true;
-    public static double ANGLE_OFFSET = 0;
-    SwerveModuleConfig mod;
-    SwerveModule module;
+@Config
+public class SwerveServoAngleTune extends CommandOpMode {
+
+
+    public int modNum = 1;
+    SwerveDriveServo swerveDrive;
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
+    FtcDashboard dashboard;
+    double targetAngle;
     double driveSpeed;
-    double finalDriveSpeed;
 
     @Override
     public void initialize() {
-        mod = new SwerveModuleConfig(0,
-                "driveMotor", "angleServo", "angleInput", ANGLE_OFFSET, DcMotorSimple.Direction.REVERSE);
 
-        module = new SwerveModule(mod, this);
-
-        FtcDashboard dashboard = FtcDashboard.getInstance();
-
+        swerveDrive = new SwerveDriveServo(this);
+        dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
-
+        register(swerveDrive);
+        KoalaLog.setup(hardwareMap);
     }
 
     @Override
     public void runOpMode() {
 
-        initialize();
         // Wait for the game to start (driver presses START)
+        initialize();
         waitForStart();
 
         while (opModeIsActive()) {
+            AutoLogManager.periodic();
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
-
-            if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
-                module.setDriveKP(DRIVEKP);
-                module.setDriveKI(DRIVEKI);
-                module.setDriveKD(DRIVEKD);
-            }
-            if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) {
-                module.createFeedForward(DRIVEKS, DRIVEKV, DRIVEKA);
-            }
-
-            if (currentGamepad1.dpad_right)
-                finalDriveSpeed = -driveSpeed;
-
-            if (currentGamepad1.dpad_left)
-                finalDriveSpeed = driveSpeed;
-
-            if (!currentGamepad1.dpad_left && !currentGamepad1.dpad_right)
-                finalDriveSpeed = 0;
-
-            module.setState(new SwerveModuleState(finalDriveSpeed, new Rotation2d(0)));
-
-
-            if (currentGamepad1.dpad_up) {
-                module.setOpenLoop(true);
-            }
-
-            if (currentGamepad1.dpad_down) {
-                module.setOpenLoop(false);
-            }
-
-            if (currentGamepad1.a && !previousGamepad1.a) {
-                driveSpeed = 0.5;
-            }
-            if (currentGamepad1.b && !previousGamepad1.b) {
-                driveSpeed = 0.75;
-            }
-            if (currentGamepad1.x && !previousGamepad1.x) {
-                driveSpeed = 1;
-            }
-            if (currentGamepad1.y && !previousGamepad1.y) {
-                driveSpeed = 1.25;
-            }
-
-            telemetry.addData("CommandVel", driveSpeed);
-            telemetry.addData("OpenLoop", OPENLOOP);
-            telemetry.addData("driveMotorVel", module.driveMotor.getVelocity());
-            telemetry.addData("DriveVel", module.getState().speedMetersPerSecond);
-
-            telemetry.update();
-
-
         }
+
+
+        if (currentGamepad1.back) {
+            driveSpeed = gamepad1.left_stick_y * SwerveDriveConstants.maxSpeedMetersPerSec;
+            swerveDrive.modules[0].driveMotor.setPower(driveSpeed);
+            swerveDrive.modules[1].driveMotor.setPower(driveSpeed);
+            swerveDrive.modules[2].driveMotor.setPower(driveSpeed);
+            swerveDrive.modules[3].driveMotor.setPower(driveSpeed);
+        } else {
+            driveSpeed = 0;
+            swerveDrive.modules[0].driveMotor.setPower(driveSpeed);
+            swerveDrive.modules[1].driveMotor.setPower(driveSpeed);
+            swerveDrive.modules[2].driveMotor.setPower(driveSpeed);
+            swerveDrive.modules[3].driveMotor.setPower(driveSpeed);
+        }
+
+        if (currentGamepad1.a) {
+            targetAngle = 0;
+        }
+        if (currentGamepad1.b) {
+            targetAngle = 90;
+        }
+        if (currentGamepad1.x && !previousGamepad1.x) {
+            targetAngle = -90;
+        }
+
+        if (currentGamepad1.y && !previousGamepad1.y) {
+            targetAngle = -110;
+        }
+
+        if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left) {
+            targetAngle = 110;
+        }
+        if (currentGamepad1.dpad_right && !previousGamepad1.dpad_right) {
+            targetAngle = 70;
+        }
+        if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up) {
+            targetAngle = -70;
+        }
+        if (!currentGamepad1.dpad_up && previousGamepad1.dpad_up) {
+            targetAngle = -45;
+        }
+
+
+        if (!currentGamepad1.dpad_down && previousGamepad1.dpad_down) {
+            targetAngle = 45;
+        }
+
+        swerveDrive.setModuleStates(new SwerveModuleState(driveSpeed, Rotation2d.fromDegrees(targetAngle)));
+
+
+        telemetry.addData("Target Angle", targetAngle);
+
+        telemetry.addData("PotAngle0", swerveDrive.modules[0].getWheelAngleDeg());
+        telemetry.addData("AngleServo0", swerveDrive.modules[0].getServoAngleDegrees());
+
+        telemetry.addData("PotAngle1", swerveDrive.modules[1].getWheelAngleDeg());
+        telemetry.addData("AngleServo1", swerveDrive.modules[1].getServoAngleDegrees());
+
+
+        telemetry.addData("PotAngle2", swerveDrive.modules[2].getWheelAngleDeg());
+        telemetry.addData("AngleServo2", swerveDrive.modules[2].getServoAngleDegrees());
+
+        telemetry.addData("PotAngle3", swerveDrive.modules[3].getWheelAngleDeg());
+        telemetry.addData("AngleServo3", swerveDrive.modules[3].getServoAngleDegrees());
+
+
+        telemetry.update();
     }
 }
-
-
-
-
-
 
 

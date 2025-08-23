@@ -8,6 +8,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.geometry.Pose2d;
 import com.arcrobotics.ftclib.trajectory.Trajectory;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
@@ -16,7 +17,7 @@ import org.firstinspires.ftc.teamcode.utils.Drawing;
 
 @TeleOp(name = "FullSwerveSim", group = "Sim")
 @Config
-
+@Disabled
 public class FullSwerveDriveOpModeSim extends CommandOpMode {
     public static boolean RUNT;
     //  public Telemetry telemetry;

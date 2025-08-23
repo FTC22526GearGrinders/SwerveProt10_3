@@ -28,10 +28,10 @@ import java.util.List;
 public class Trajectories {
 
     public Trajectory crossLine, curve;
-    SwerveDrive m_drive;
 
-    public Trajectories(SwerveDrive drive) {
-        m_drive = drive;
+
+    public Trajectories() {
+
 
         // Create config for trajectory
         TrajectoryConfig config =

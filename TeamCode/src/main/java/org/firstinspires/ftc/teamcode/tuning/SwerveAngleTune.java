@@ -35,6 +35,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.geometry.Rotation2d;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveModuleState;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
@@ -62,7 +63,7 @@ import Ori.Coval.Logging.Logger.KoalaLog;
 
 
 @TeleOp(name = "SwerveAngleTune", group = "Tune")
-//@Disabled
+@Disabled
 
 @Config
 public class SwerveAngleTune extends CommandOpMode {
