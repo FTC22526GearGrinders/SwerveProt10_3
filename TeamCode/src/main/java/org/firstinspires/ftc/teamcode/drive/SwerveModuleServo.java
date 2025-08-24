@@ -69,7 +69,7 @@ public class SwerveModuleServo extends SubsystemBase {
     private double pidOut;
     private double potAngle;
 
-    public double rangeDeg = 230;
+    public double rangeDeg = 250;
 
     public SwerveModuleServo(SwerveModuleConfig config, CommandOpMode opMode) {
         driveMotor = opMode.hardwareMap.get(DcMotorEx.class, config.driveMotorName);
@@ -216,10 +216,13 @@ public class SwerveModuleServo extends SubsystemBase {
     }
 
     public void setAngleDegrees(double deg) {
-
         double servoCmd = .5 + deg / rangeDeg;
         angleServo.getPosition();
         angleServo.setPosition(servoCmd);
+    }
+
+    public boolean checkAngleinRange(double deg) {
+        return Math.abs(deg) < rangeDeg / 2;
     }
 
     public double getServoPosition() {
@@ -228,7 +231,6 @@ public class SwerveModuleServo extends SubsystemBase {
 
     public double getServoAngleDegrees() {
         double temp = angleServo.getPosition();
-
         return (temp - .5) * rangeDeg;
     }
 
@@ -266,8 +268,15 @@ public class SwerveModuleServo extends SubsystemBase {
 
     public void setState(SwerveModuleState state) {
         wheelDegs = getWheelAngleDeg();
+        //check for new angle
         if (state.angle.getDegrees() != origState.angle.getDegrees()) {
-            newState = state;//SwerveModuleState.optimize(state, Rotation2d.fromDegrees(wheelDegs));
+            newState = state;
+            newState = SwerveModuleState.optimize(state, Rotation2d.fromDegrees(wheelDegs));
+            //flip angle if it went out of range
+            if (newState.angle.getDegrees() > rangeDeg || newState.angle.getDegrees() < 0)
+                newState = new SwerveModuleState(
+                        -newState.speedMetersPerSecond,
+                        newState.angle.rotateBy(Rotation2d.fromDegrees(180.0)));
             origState = state;
         }
         if (openLoop)
@@ -312,8 +321,8 @@ public class SwerveModuleServo extends SubsystemBase {
 
     public double getWheelAngleDeg() {
         volts = servoPotentiometer.getVoltage();
-        potAngle = round2dp(180 * (volts - (3.3 / 2) / 3.3), 2);
-        return potAngle;
+        potAngle = volts * 360 / 3.3;
+        return potAngle - 180;
     }
 
     public double getPotVolts() {

@@ -12,7 +12,8 @@ public class ServoDriveCommand extends CommandBase {
     boolean fieldRelative;
     Gamepad gamepad;
     double speedDivisor = 2;
-int  test;
+    int test;
+
     public ServoDriveCommand(SwerveDriveServo drive, Gamepad gamepad, boolean fieldRelative, CommandOpMode opMode) {
         this.drive = drive;
         myOpmode = opMode;
@@ -29,11 +30,12 @@ int  test;
 
     @Override
     public void execute() {
+        double rot = gamepad.right_stick_x;
 
         drive.drive(
-        -gamepad.left_stick_y / speedDivisor,
+                -gamepad.left_stick_y / speedDivisor,
                 gamepad.left_stick_x / speedDivisor,
-                gamepad.right_stick_x,
+                rot,
                 fieldRelative);
 
 
