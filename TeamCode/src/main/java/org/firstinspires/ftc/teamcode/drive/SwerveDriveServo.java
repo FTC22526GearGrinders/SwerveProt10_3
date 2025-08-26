@@ -36,7 +36,7 @@ public class SwerveDriveServo extends SubsystemBase {
 
     public SwerveDriveServo(CommandOpMode opMode) {
         SwerveModuleConfig fl = new SwerveModuleConfig(0,
-                "driveMotor1", "angleServo1", "angleInput1", -135, DcMotorSimple.Direction.REVERSE);
+                "driveMotor1", "angleServo1", "angleInput1", 0, DcMotorSimple.Direction.REVERSE);
 
         SwerveModuleConfig fr = new SwerveModuleConfig(1,
                 "driveMotor2", "angleServo2", "angleInput2", 0, DcMotorSimple.Direction.REVERSE);
@@ -109,6 +109,12 @@ public class SwerveDriveServo extends SubsystemBase {
     public void setModuleStates(SwerveModuleState state) {
         for (SwerveModuleServo module : modules) {
             module.setState(state);
+        }
+    }
+
+    public void setModulePositions(double val){
+        for (SwerveModuleServo module : modules) {
+            module.setServoPosition(val);
         }
     }
 
@@ -196,6 +202,7 @@ public class SwerveDriveServo extends SubsystemBase {
     public void setModuleAngleKP(int module, double val) {
         modules[module].setAngleKP(val);
     }
+
     public void setModuleThetaAngleKP(int module, double val) {
         modules[module].setThetaAngleKP(val);
     }

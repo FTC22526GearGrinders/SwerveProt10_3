@@ -18,6 +18,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.utils.RollingAverage;
 import org.firstinspires.ftc.teamcode.utils.Units;
 
 
@@ -61,15 +62,37 @@ public class SwerveModuleServo extends SubsystemBase {
 
 
     public ElapsedTime potTimer = new ElapsedTime();
+
+    public double minServoPosition = .02;
+    public double maxServoPosition = .98;
+    public double midServoPosition = .5;
+    public double servoPositionRange = maxServoPosition - minServoPosition;//.96
+    public double[] voltsAtMin = {.644, .637, .640, .640};
+    public double[] voltsAtMax = {2.666, 2.65, 2.64, 2.66};
+    public double[] voltsAtMid = {1.655, 1.643, 1.6, 1.6};
+
+    public double degreesPerVolt = 360. / 3.3;
+    public double minAngleDegrees = -110;//68
+    public double maxAngleDegrees = 110;//288
+    public double midAngleDegrees = 0;//288
+
+    public double degreeRange = maxAngleDegrees - minAngleDegrees;//220
+
+    public double posRangeDegRangeRatio = servoPositionRange / degreeRange;
+
+    public double servoCmd;
+    public double volts;
     TrapezoidProfile prof = new TrapezoidProfile(constraints, goal, currentState);
-    double volts;
     private double Kvff = .1;
     private SimpleMotorFeedforward driveFeedforward;
     private double lastSpeed;
     private double pidOut;
     private double potAngle;
+    private RollingAverage ra;
+    //from logs and excel pot volts = 2.109 * servo position + .6102
+    //servo position = (pot volts -.6102) / 2.109
 
-    public double rangeDeg = 250;
+    int tst;
 
     public SwerveModuleServo(SwerveModuleConfig config, CommandOpMode opMode) {
         driveMotor = opMode.hardwareMap.get(DcMotorEx.class, config.driveMotorName);
@@ -83,6 +106,17 @@ public class SwerveModuleServo extends SubsystemBase {
 
         angleServo.setDirection(Servo.Direction.REVERSE);
 
+        if(angleServo.getDirection()== Servo.Direction.FORWARD){
+            double[] temp = voltsAtMin;
+            voltsAtMin=voltsAtMax;
+            voltsAtMax=temp;
+            double temp1 = minAngleDegrees;
+            minAngleDegrees=maxAngleDegrees;
+            maxAngleDegrees=temp1;
+
+        }
+
+
         servoPotentiometer = opMode.hardwareMap.get(AnalogInput.class, config.absoluteEncoderName);
 
         angleOffset = config.offset;
@@ -95,11 +129,10 @@ public class SwerveModuleServo extends SubsystemBase {
 
         moduleNumber = config.moduleNumber;
 
+        ra = new RollingAverage(5);
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(opMode.telemetry, dashboard.getTelemetry());
-
-
     }
 
     public static double round2dp(double number, int dp) {
@@ -207,31 +240,32 @@ public class SwerveModuleServo extends SubsystemBase {
         driveMotor.setPower(feedforward + pidOut);
     }
 
+    public double getServoPositionFromDegrees(double deg) {
+        return midServoPosition + deg * posRangeDegRangeRatio;
+    }
+
+    public double getDegreesFromServoPosition() {
+        return (getServoPosition() - midServoPosition) / posRangeDegRangeRatio;
+    }
+
     public void setAngle(SwerveModuleState state) {
         double deg = state.angle.getDegrees();
-        double rageDeg = 230;
-        double servoCmd = .5 + deg / rageDeg;
-
+        servoCmd = getServoPositionFromDegrees(deg);
         angleServo.setPosition(servoCmd);
     }
 
     public void setAngleDegrees(double deg) {
-        double servoCmd = .5 + deg / rangeDeg;
-        angleServo.getPosition();
+        double servoCmd = getServoPositionFromDegrees(deg);
         angleServo.setPosition(servoCmd);
     }
 
-    public boolean checkAngleinRange(double deg) {
-        return Math.abs(deg) < rangeDeg / 2;
-    }
 
     public double getServoPosition() {
-        return angleServo.getPosition();
+        return round2dp(angleServo.getPosition(), 2);
     }
 
-    public double getServoAngleDegrees() {
-        double temp = angleServo.getPosition();
-        return (temp - .5) * rangeDeg;
+    public void setServoPosition(double val) {
+        angleServo.setPosition(val);
     }
 
 
@@ -273,7 +307,7 @@ public class SwerveModuleServo extends SubsystemBase {
             newState = state;
             newState = SwerveModuleState.optimize(state, Rotation2d.fromDegrees(wheelDegs));
             //flip angle if it went out of range
-            if (newState.angle.getDegrees() > rangeDeg || newState.angle.getDegrees() < 0)
+            if (newState.angle.getDegrees() > maxAngleDegrees || newState.angle.getDegrees() < minAngleDegrees)
                 newState = new SwerveModuleState(
                         -newState.speedMetersPerSecond,
                         newState.angle.rotateBy(Rotation2d.fromDegrees(180.0)));
@@ -291,7 +325,7 @@ public class SwerveModuleServo extends SubsystemBase {
 
     public double getSpeedFromPot() {
         volts = servoPotentiometer.getVoltage();
-        potAngle = round2dp(volts * 360 / 3.3, 2);
+        potAngle = round2dp(volts * degreesPerVolt, 2);
         double readTime = potTimer.milliseconds();
         angleChange = potAngle - lastAngle;
         timeChange = lastPotReadTime - readTime;
@@ -320,13 +354,18 @@ public class SwerveModuleServo extends SubsystemBase {
     }
 
     public double getWheelAngleDeg() {
-        volts = servoPotentiometer.getVoltage();
-        potAngle = volts * 360 / 3.3;
-        return potAngle - 180;
+        //-140 deg = .6 volts
+        //140 deg = 2.7 volts
+        //0 deg = 1.65 volts
+
+        double diff = getPotVolts() - voltsAtMid[moduleNumber];
+        potAngle = midAngleDegrees + (diff * degreesPerVolt);
+        return potAngle;
     }
 
     public double getPotVolts() {
-        return servoPotentiometer.getVoltage();
+        //return ra.getAverage();
+       return servoPotentiometer.getVoltage();
     }
 
     public double getWheelSpeedMPS() {
@@ -339,6 +378,7 @@ public class SwerveModuleServo extends SubsystemBase {
 
     @Override
     public void periodic() {
+        ra.add(getPotVolts());
 
     }
 

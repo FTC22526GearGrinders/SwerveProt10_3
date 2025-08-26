@@ -11,17 +11,14 @@ import com.arcrobotics.ftclib.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
-import org.firstinspires.ftc.teamcode.drive.DriveCommand;
-import org.firstinspires.ftc.teamcode.drive.RunTrajectoryCommand;
 import org.firstinspires.ftc.teamcode.drive.RunTrajectoryCommandSwerve;
 import org.firstinspires.ftc.teamcode.drive.ServoDriveCommand;
-import org.firstinspires.ftc.teamcode.drive.SwerveDrive;
 import org.firstinspires.ftc.teamcode.drive.SwerveDriveServo;
 import org.firstinspires.ftc.teamcode.utils.Drawing;
 import org.firstinspires.ftc.teamcode.utils.Trajectories;
 
 
-@TeleOp(name = "SwerveServoTest", group = "Test")
+@TeleOp(name = "SwerveServoOpMode", group = "Test")
 @Config
 public class SwerveDriveServoOpMode extends CommandOpMode {
 
@@ -42,11 +39,7 @@ public class SwerveDriveServoOpMode extends CommandOpMode {
         swerveDrive.setModuleOpenloop(false);
 
         swerveDrive.setDefaultCommand
-                (new ServoDriveCommand(swerveDrive,
-                        gamepad1,
-                        true,
-                        this));
-
+                (new ServoDriveCommand(swerveDrive, gamepad1, true, this));
     }
 
     @Override
@@ -78,19 +71,33 @@ public class SwerveDriveServoOpMode extends CommandOpMode {
             Pose2d inchPose = swerveDrive.getPoseInchUnits(swerveDrive.getPose());
             Drawing.drawRobot(packet.fieldOverlay(), inchPose, telemetry);
             FtcDashboard.getInstance().sendTelemetryPacket(packet);
-            telemetry.addData("Speed", swerveDrive.getStates()[0].speedMetersPerSecond);
-            telemetry.addData("Angle0", swerveDrive.modules[0].getWheelAngleDeg());
-            telemetry.addData("Angle0Volts", swerveDrive.modules[0].getPotVolts());
 
+            double wheelAngle = swerveDrive.modules[0].getWheelAngleDeg();
+            telemetry.addData("A0PotVolts", swerveDrive.modules[0].getPotVolts());
+            telemetry.addData("A0FromPot", wheelAngle);
+            telemetry.addData("Speed0", swerveDrive.modules[0].newState.speedMetersPerSecond);
+            telemetry.addData("A0Tgt", swerveDrive.modules[0].newState.angle.getDegrees());
+            telemetry.addData("A0SVPos", swerveDrive.modules[0].getServoPosition());
+            telemetry.addData("A0DegFromServo", swerveDrive.modules[0].getDegreesFromServoPosition());
 
-            telemetry.addData("Angle1", swerveDrive.modules[1].getWheelAngleDeg());
+//
+//            telemetry.addData("A1FromPot", swerveDrive.modules[1].getWheelAngleDeg());
+//            telemetry.addData("Speed1", swerveDrive.modules[1].newState.speedMetersPerSecond);
+//            telemetry.addData("A1Tgt", swerveDrive.modules[1].newState.angle.getDegrees());
+//            telemetry.addData("A1SVPos", swerveDrive.modules[1].getServoPosition());
+//            telemetry.addData("A1DegFromServo", swerveDrive.modules[1].getDegreesFromServoPosition());
 
-
-            telemetry.addData("Angle2", swerveDrive.modules[2].getWheelAngleDeg());
-
-
-            telemetry.addData("Angle3", swerveDrive.modules[3].getWheelAngleDeg());
-
+//            telemetry.addData("A2FromPot", swerveDrive.modules[2].getWheelAngleDeg());
+//            telemetry.addData("Speed2", swerveDrive.modules[2].newState.speedMetersPerSecond);
+//            telemetry.addData("A2Tgt", swerveDrive.modules[2].newState.angle.getDegrees());
+//            telemetry.addData("A2SVPos", swerveDrive.modules[2].getServoPosition());
+//            telemetry.addData("A2DegFromServo", swerveDrive.modules[2].getDegreesFromServoPosition());
+//
+//            telemetry.addData("A3FromPot", swerveDrive.modules[3].getWheelAngleDeg());
+//            telemetry.addData("Speed3", swerveDrive.modules[3].newState.speedMetersPerSecond);
+//            telemetry.addData("A3Tgt", swerveDrive.modules[3].newState.angle.getDegrees());
+//            telemetry.addData("A3SVPos", swerveDrive.modules[3].getServoPosition());
+//            telemetry.addData("A3DegFromServo", swerveDrive.modules[3].getDegreesFromServoPosition());
 
             telemetry.update();
         }

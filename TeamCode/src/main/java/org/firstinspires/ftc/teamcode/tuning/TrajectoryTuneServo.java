@@ -35,11 +35,10 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.geometry.Pose2d;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
-import org.firstinspires.ftc.teamcode.drive.SwerveDrive;
+import org.firstinspires.ftc.teamcode.drive.SwerveDriveServo;
 import org.firstinspires.ftc.teamcode.utils.Drawing;
 
 
@@ -57,10 +56,10 @@ import org.firstinspires.ftc.teamcode.utils.Drawing;
  */
 
 
-@TeleOp(name = "TrajectoryTune", group = "Tune")
+@TeleOp(name = "TrajectoryTuneServo", group = "Tune")
 //@Disabled
 @Config
-public class TrajectoryTune extends CommandOpMode {
+public class TrajectoryTuneServo extends CommandOpMode {
 
 
     public static double XKP = 1.;
@@ -76,13 +75,13 @@ public class TrajectoryTune extends CommandOpMode {
     public static double THETAKD = .0;
 
 
-    SwerveDrive swerveDrive;
+    SwerveDriveServo swerveDrive;
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
 
     @Override
     public void initialize() {
-        swerveDrive = new SwerveDrive(this);
+        swerveDrive = new SwerveDriveServo(this);
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
 
