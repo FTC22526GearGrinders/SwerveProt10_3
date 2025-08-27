@@ -67,8 +67,8 @@ public class SwerveModuleServo extends SubsystemBase {
     public double maxServoPosition = .98;
     public double midServoPosition = .5;
     public double servoPositionRange = maxServoPosition - minServoPosition;//.96
-    public double[] voltsAtMin = {.644, .637, .640, .640};
-    public double[] voltsAtMax = {2.666, 2.65, 2.64, 2.66};
+    public double[] voltsAtMin = {.64, .64, .640, .640};
+    public double[] voltsAtMax = {2.65, 2.66, 2.64, 2.66};
     public double[] voltsAtMid = {1.655, 1.643, 1.6, 1.6};
 
     public double degreesPerVolt = 360. / 3.3;
@@ -83,16 +83,15 @@ public class SwerveModuleServo extends SubsystemBase {
     public double servoCmd;
     public double volts;
     TrapezoidProfile prof = new TrapezoidProfile(constraints, goal, currentState);
+    int tst;
     private double Kvff = .1;
     private SimpleMotorFeedforward driveFeedforward;
     private double lastSpeed;
     private double pidOut;
     private double potAngle;
-    private RollingAverage ra;
     //from logs and excel pot volts = 2.109 * servo position + .6102
     //servo position = (pot volts -.6102) / 2.109
-
-    int tst;
+    private RollingAverage ra;
 
     public SwerveModuleServo(SwerveModuleConfig config, CommandOpMode opMode) {
         driveMotor = opMode.hardwareMap.get(DcMotorEx.class, config.driveMotorName);
@@ -106,13 +105,13 @@ public class SwerveModuleServo extends SubsystemBase {
 
         angleServo.setDirection(Servo.Direction.REVERSE);
 
-        if(angleServo.getDirection()== Servo.Direction.FORWARD){
+        if (angleServo.getDirection() == Servo.Direction.FORWARD) {
             double[] temp = voltsAtMin;
-            voltsAtMin=voltsAtMax;
-            voltsAtMax=temp;
+            voltsAtMin = voltsAtMax.clone();
+            voltsAtMax = temp.clone();
             double temp1 = minAngleDegrees;
-            minAngleDegrees=maxAngleDegrees;
-            maxAngleDegrees=temp1;
+            minAngleDegrees = maxAngleDegrees;
+            maxAngleDegrees = temp1;
 
         }
 
@@ -323,6 +322,12 @@ public class SwerveModuleServo extends SubsystemBase {
 
     }
 
+    public void presetServoToPot(){
+        double angle = getWheelAngleDeg();
+        double servoCmd = getServoPositionFromDegrees(angle);
+        setServoPosition(servoCmd);
+    }
+
     public double getSpeedFromPot() {
         volts = servoPotentiometer.getVoltage();
         potAngle = round2dp(volts * degreesPerVolt, 2);
@@ -365,7 +370,11 @@ public class SwerveModuleServo extends SubsystemBase {
 
     public double getPotVolts() {
         //return ra.getAverage();
-       return servoPotentiometer.getVoltage();
+        return servoPotentiometer.getVoltage();
+    }
+
+    public double getPotVoltsAve() {
+        return ra.getAverage();
     }
 
     public double getWheelSpeedMPS() {

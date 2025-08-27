@@ -63,7 +63,7 @@ import Ori.Coval.Logging.Logger.KoalaLog;
 
 
 @TeleOp(name = "SwerveAngleTune", group = "Tune")
-@Disabled
+//@Disabled
 
 @Config
 public class SwerveAngleTune extends CommandOpMode {
@@ -104,6 +104,7 @@ public class SwerveAngleTune extends CommandOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
+            run();
             AutoLogManager.periodic();
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);

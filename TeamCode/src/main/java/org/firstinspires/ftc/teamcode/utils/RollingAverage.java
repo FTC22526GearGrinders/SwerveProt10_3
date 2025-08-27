@@ -15,9 +15,9 @@ public class RollingAverage {
 
     public void add(double x) {
 //remove spikes>1 volt
-        if (Math.abs(x - getAverage()) > glitchThreshold) {
-            x = getAverage();
-        }
+//        if (Math.abs(x - getAverage()) > glitchThreshold) {
+//            x = getAverage();
+//        }
         total -= samples[index];
         samples[index] = x;
         total += x;

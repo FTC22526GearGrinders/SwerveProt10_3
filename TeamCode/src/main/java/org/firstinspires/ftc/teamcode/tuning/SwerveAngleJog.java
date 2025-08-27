@@ -73,7 +73,7 @@ public class SwerveAngleJog extends CommandOpMode {
     double targetAngle = 0;
     double targetAnglea = 0;
 
-    double targetIncrement = 10;
+    double targetIncrement = .1;
 
     int lpctr;
 
@@ -90,7 +90,6 @@ public class SwerveAngleJog extends CommandOpMode {
 
     @Override
     public void initialize() {
-
         swerveDrive = new SwerveDriveServo(this);
         dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
@@ -107,11 +106,11 @@ public class SwerveAngleJog extends CommandOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-
+            run();
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
 
-            swerveDrive.modules[modSel].angleServo.setPosition(targetAnglea);
+            swerveDrive.modules[modSel].angleServo.setPosition(targetAngle);
 
 
             if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
@@ -139,21 +138,23 @@ public class SwerveAngleJog extends CommandOpMode {
 //            }
 
 
-            if (currentGamepad1.a) {
+            if (currentGamepad1.a && !previousGamepad1.a) {
                 modSel++;
                 if (modSel > 3) modSel = 0;
             }
 
             if (currentGamepad1.b) {
-
+                modSel--;
+                if (modSel > 0) modSel = 3;
             }
-//            if (currentGamepad1.x && !previousGamepad1.x) {
-//
-//            }
-//
-//            if (currentGamepad1.y && !previousGamepad1.y) {
-//
-//            }
+            
+            if (currentGamepad1.x && !previousGamepad1.x) {
+                targetIncrement = .25;
+            }
+
+            if (currentGamepad1.y && !previousGamepad1.y) {
+                targetIncrement = .5;
+            }
 
             if (currentGamepad1.dpad_left) {
                 targetIncrement = .01;
@@ -162,31 +163,31 @@ public class SwerveAngleJog extends CommandOpMode {
                 targetIncrement = .05;
             }
             if (currentGamepad1.dpad_down) {
-                targetIncrement = .005;
+                targetIncrement = .1;
             }
-            if (!currentGamepad1.dpad_up) {
+            if (currentGamepad1.dpad_up) {
                 targetIncrement = .001;
             }
 
             lpctr++;
             telemetry.addData("LP", lpctr);
-            if (lpctr > 500) {
 
-                telemetry.addData("Modnum", modSel);
-                telemetry.addData("Targeta", targetAnglea);
-                telemetry.addData("TargetInc", targetIncrement);
-                telemetry.addData("Angle0PotVolts", round2dp(swerveDrive.modules[modSel].getPotVolts(), 2));
 
-                telemetry.addData("Angle0Servo", round2dp(swerveDrive.modules[0].getServoPosition(), 2));
-                telemetry.addData("Angle0Pot", round2dp(swerveDrive.modules[modSel].getWheelAngleDeg(), 2));
-                telemetry.addData("A0DegFromServo", round2dp(swerveDrive.modules[0].getDegreesFromServoPosition(), 2));
+            telemetry.addData("ModuleSel", modSel);
+            telemetry.addData("Target", targetAngle);
+            telemetry.addData("TargetInc", targetIncrement);
+            telemetry.addData("PotVolts", round2dp(swerveDrive.modules[modSel].getPotVolts(), 3));
 
-                telemetry.update();
-                lpctr = 0;
-            }
+            telemetry.addData("PotVoltsAve", round2dp(swerveDrive.modules[modSel].getPotVoltsAve(), 3));
+            telemetry.addData("AngleServo", round2dp(swerveDrive.modules[0].getServoPosition(), 3));
+            telemetry.addData("AnglePot", round2dp(swerveDrive.modules[modSel].getWheelAngleDeg(), 3));
+            telemetry.addData("AngleFromServo", round2dp(swerveDrive.modules[0].getDegreesFromServoPosition(), 3));
+            telemetry.update();
+
         }
-
     }
+
 }
+
 
 
