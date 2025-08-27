@@ -77,7 +77,7 @@ public class SwerveDrive extends SubsystemBase {
 
         double new_translation = translation * SwerveDriveConstants.maxSpeedMetersPerSec;
         double new_strafe = strafe * SwerveDriveConstants.maxSpeedMetersPerSec;
-        double new_rotation = rotation * SwerveDriveConstants.maxAngleRadiansPerSecond * SwerveDriveConstants.rotationMultiplier;
+        double new_rotation = rotation * SwerveDriveConstants.maxAngularVelocity * SwerveDriveConstants.rotationMultiplier;
 
         ChassisSpeeds speeds = fieldRelative
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(new_translation, new_strafe, new_rotation, getHeading())

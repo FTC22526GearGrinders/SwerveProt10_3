@@ -47,4 +47,5 @@ public final class SwerveDriveConstants {
 
     public static double fieldLength = Units.inchesToMeters(72.);
     public static double fieldWidth = Units.inchesToMeters(72.);
+    public static double maxAngularVelocity =4;
 }

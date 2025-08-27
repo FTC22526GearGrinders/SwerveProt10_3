@@ -94,6 +94,7 @@ public class SwerveServoAngleTune extends CommandOpMode {
 
         while (opModeIsActive()) {
             //   AutoLogManager.periodic();
+            run();
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
 

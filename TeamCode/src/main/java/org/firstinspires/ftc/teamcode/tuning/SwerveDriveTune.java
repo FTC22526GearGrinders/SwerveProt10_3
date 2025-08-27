@@ -97,6 +97,7 @@ public class SwerveDriveTune extends CommandOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
+            run();
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
 

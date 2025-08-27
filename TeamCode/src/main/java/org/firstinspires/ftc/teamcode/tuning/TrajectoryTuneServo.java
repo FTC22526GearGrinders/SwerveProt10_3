@@ -97,7 +97,7 @@ public class TrajectoryTuneServo extends CommandOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-
+            run();
             TelemetryPacket packet = new TelemetryPacket();
             packet.fieldOverlay().setStroke("#3F51B5");
             Pose2d inchPose = swerveDrive.getPoseInchUnits(swerveDrive.getPose());
@@ -128,17 +128,17 @@ public class TrajectoryTuneServo extends CommandOpMode {
 
 
             if (currentGamepad1.a)
-              //  swerveDrive.runTrajectory(m_trajectories.leftStart);
+                //  swerveDrive.runTrajectory(m_trajectories.leftStart);
 
-            if (currentGamepad1.b && !previousGamepad1.b) {
+                if (currentGamepad1.b && !previousGamepad1.b) {
 
-               // swerveDrive.runTrajectory(m_trajectories.leftStart);
-            }
+                    // swerveDrive.runTrajectory(m_trajectories.leftStart);
+                }
             if (currentGamepad1.x && !previousGamepad1.x) {
-               // swerveDrive.runTrajectory(m_trajectories.leftStart);
+                // swerveDrive.runTrajectory(m_trajectories.leftStart);
             }
             if (currentGamepad1.y && !previousGamepad1.y) {
-             //   swerveDrive.runTrajectory(m_trajectories.leftStart);
+                //   swerveDrive.runTrajectory(m_trajectories.leftStart);
             }
 
             telemetry.addData("OpenLoop", swerveDrive.openLoop);
