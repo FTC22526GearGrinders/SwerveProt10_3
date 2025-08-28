@@ -31,9 +31,11 @@ public class ServoDriveCommand extends CommandBase {
     @Override
     public void execute() {
         double rot = gamepad.right_stick_x;
-
+        rot=0;
+double y =-gamepad.left_stick_y / speedDivisor;
+y=0;
         drive.drive(
-                -gamepad.left_stick_y / speedDivisor,
+                y,
                 gamepad.left_stick_x / speedDivisor,
                 rot,
                 fieldRelative);

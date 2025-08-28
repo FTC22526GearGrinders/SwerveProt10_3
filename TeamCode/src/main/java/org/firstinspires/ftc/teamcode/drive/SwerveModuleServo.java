@@ -63,8 +63,8 @@ public class SwerveModuleServo extends SubsystemBase {
 
     public ElapsedTime potTimer = new ElapsedTime();
 
-    public double minServoPosition = .02;
-    public double maxServoPosition = .98;
+    public double minServoPosition = .01;
+    public double maxServoPosition = .99;
     public double midServoPosition = .5;
     public double servoPositionRange = maxServoPosition - minServoPosition;//.96
     public double[] voltsAtMin = {.64, .64, .640, .640};
@@ -78,7 +78,7 @@ public class SwerveModuleServo extends SubsystemBase {
 
     public double degreeRange = maxAngleDegrees - minAngleDegrees;//220
 
-    public double posRangeDegRangeRatio = servoPositionRange / degreeRange;
+    public double posRangeDegRangeRatio = servoPositionRange / 180;
 
     public double servoCmd;
     public double volts;
@@ -304,7 +304,7 @@ public class SwerveModuleServo extends SubsystemBase {
         //check for new angle
         if (state.angle.getDegrees() != origState.angle.getDegrees()) {
             newState = state;
-            newState = SwerveModuleState.optimize(state, Rotation2d.fromDegrees(wheelDegs));
+            // newState = SwerveModuleState.optimize(state, Rotation2d.fromDegrees(wheelDegs));
             //flip angle if it went out of range
             if (newState.angle.getDegrees() > maxAngleDegrees || newState.angle.getDegrees() < minAngleDegrees)
                 newState = new SwerveModuleState(
@@ -322,7 +322,7 @@ public class SwerveModuleServo extends SubsystemBase {
 
     }
 
-    public void presetServoToPot(){
+    public void presetServoToPot() {
         double angle = getWheelAngleDeg();
         double servoCmd = getServoPositionFromDegrees(angle);
         setServoPosition(servoCmd);

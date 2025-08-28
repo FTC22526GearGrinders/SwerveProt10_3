@@ -20,8 +20,8 @@ public final class SwerveDriveConstants {
 
     public static final double maxAngleRadiansPerSecond = maxAngleRevsPerSecond * 2. * Math.PI;
 
-    public static final double trackWidth = 11.5;
-    public static final double wheelBase = 12.5;
+    public static final double trackWidth = 15.375;
+    public static final double wheelBase = 10.5;
 
     public static final double trackWidthMeters = Units.inchesToMeters(trackWidth);
     public static final double wheelBaseMeters = Units.inchesToMeters(wheelBase);

@@ -39,7 +39,7 @@ public class SwerveDriveServoOpMode extends CommandOpMode {
         swerveDrive.setModuleOpenloop(false);
 
         swerveDrive.setDefaultCommand
-                (new ServoDriveCommand(swerveDrive, gamepad1, true, this));
+                (new ServoDriveCommand(swerveDrive, gamepad1, false, this));
     }
 
     @Override
@@ -78,8 +78,7 @@ public class SwerveDriveServoOpMode extends CommandOpMode {
             telemetry.addData("Speed0", swerveDrive.modules[0].newState.speedMetersPerSecond);
             telemetry.addData("A0Tgt", swerveDrive.modules[0].newState.angle.getDegrees());
             telemetry.addData("A0SVPos", swerveDrive.modules[0].getServoPosition());
-            telemetry.addData("A0DegFromServo", swerveDrive.modules[0].getDegreesFromServoPosition());
-
+           //telemetry.addData("Yaw", swerveDrive.getHeading().getDegrees());
 //
 //            telemetry.addData("A1FromPot", swerveDrive.modules[1].getWheelAngleDeg());
 //            telemetry.addData("Speed1", swerveDrive.modules[1].newState.speedMetersPerSecond);
