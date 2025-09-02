@@ -79,7 +79,7 @@ public class FullSwerveDriveOpModeSim extends CommandOpMode {
             TelemetryPacket packet = new TelemetryPacket();
             packet.fieldOverlay().setStroke("#3F51B5");
             Pose2d inchPose = swerveDriveSim.converMetersPoseToInches(swerveDriveSim.getPose());
-            Drawing.drawRobot(packet.fieldOverlay(), inchPose, telemetry);
+       //     Drawing.drawRobot(packet.fieldOverlay(), inchPose, telemetry);
 
             FtcDashboard.getInstance().sendTelemetryPacket(packet);
             telemetry.update();

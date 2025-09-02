@@ -7,6 +7,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.geometry.Pose2d;
+import com.arcrobotics.ftclib.geometry.Rotation2d;
 import com.arcrobotics.ftclib.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -40,6 +41,8 @@ public class SwerveDriveServoOpMode extends CommandOpMode {
 
         swerveDrive.setDefaultCommand
                 (new ServoDriveCommand(swerveDrive, gamepad1, false, this));
+
+        swerveDrive.resetPose(new Pose2d(-1, 1, new Rotation2d()));
     }
 
     @Override
@@ -52,12 +55,8 @@ public class SwerveDriveServoOpMode extends CommandOpMode {
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
 
-            if (!currentGamepad1.right_bumper && previousGamepad1.right_bumper) {
-                swerveDrive.drive(0., 0., 0, true);
-            }
 
-
-            if (gamepad1.a) {
+            if (gamepad1.a && !previousGamepad1.a) {
                 swerveDrive.resetYaw();
             }
 
@@ -69,16 +68,17 @@ public class SwerveDriveServoOpMode extends CommandOpMode {
             TelemetryPacket packet = new TelemetryPacket();
             packet.fieldOverlay().setStroke("#3F51B5");
             Pose2d inchPose = swerveDrive.getPoseInchUnits(swerveDrive.getPose());
-            Drawing.drawRobot(packet.fieldOverlay(), inchPose, telemetry);
+            Drawing.drawRobot(packet.fieldOverlay(), swerveDrive, true, telemetry);
             FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
             double wheelAngle = swerveDrive.modules[0].getWheelAngleDeg();
-            telemetry.addData("A0PotVolts", swerveDrive.modules[0].getPotVolts());
-            telemetry.addData("A0FromPot", wheelAngle);
-            telemetry.addData("Speed0", swerveDrive.modules[0].newState.speedMetersPerSecond);
-            telemetry.addData("A0Tgt", swerveDrive.modules[0].newState.angle.getDegrees());
-            telemetry.addData("A0SVPos", swerveDrive.modules[0].getServoPosition());
-           //telemetry.addData("Yaw", swerveDrive.getHeading().getDegrees());
+            telemetry.addData("A0PotVolts", round2dp(swerveDrive.modules[0].getPotVolts(), 2));
+            telemetry.addData("A0FromPot", round2dp(wheelAngle, 2));
+            telemetry.addData("Speed0", round2dp(swerveDrive.modules[0].newState.speedMetersPerSecond, 2));
+            telemetry.addData("A0Tgt", round2dp(swerveDrive.modules[0].newState.angle.getDegrees(), 2));
+            telemetry.addData("A0SVPos", round2dp(swerveDrive.modules[0].getServoPosition(), 2));
+            telemetry.addData("Yaw", round2dp(swerveDrive.getHeading().getDegrees(), 2));
+
 //
 //            telemetry.addData("A1FromPot", swerveDrive.modules[1].getWheelAngleDeg());
 //            telemetry.addData("Speed1", swerveDrive.modules[1].newState.speedMetersPerSecond);
@@ -100,5 +100,11 @@ public class SwerveDriveServoOpMode extends CommandOpMode {
 
             telemetry.update();
         }
+    }
+
+    public static double round2dp(double number, int dp) {
+        double temp = Math.pow(10, dp);
+        double temp1 = Math.round(number * temp);
+        return temp1 / temp;
     }
 }

@@ -71,6 +71,8 @@ public class SwerveServoAngleTune extends CommandOpMode {
     double targetAngle;
     double driveSpeed;
     private boolean latch;
+
+    private boolean reverse;
     private int scanctr;
     private double lastTargetAngle;
     private boolean logged;
@@ -139,50 +141,52 @@ public class SwerveServoAngleTune extends CommandOpMode {
                 targetAngle = -45;
             }
 
-            if (!currentGamepad1.dpad_down && previousGamepad1.dpad_down) {
+            if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down) {
                 latch = true;
+                reverse = false;
                 scanctr = 0;
-                targetAngle = -.01;
+                targetAngle = 0;
             }
 
             if (latch) {
                 scanctr += 1;
             }
-            if (latch && scanctr >= 5) {
 
 
-                targetAngle += .01;
+            if (latch && scanctr >= 10) {
+                if (!reverse)
+                    targetAngle += SwerveDriveConstants.servoPositionPerDegree;
+                if (reverse)
+                    targetAngle -= SwerveDriveConstants.servoPositionPerDegree;
                 swerveDrive.setModulePositions(targetAngle);
                 scanctr = 0;
-                logged = false;
+
             }
 
             if (!latch) swerveDrive.setModulePositions(targetAngle);
 
 //                swerveDrive.setModuleStates(new SwerveModuleState(driveSpeed, Rotation2d.fromDegrees(targetAngle)));
 
-            if (latch && targetAngle >= 1) {
-                latch = false;
-                targetAngle = 0;
+            if (latch && !reverse && targetAngle >= 1) {
+                reverse = true;
+
                 //swerveDrive.setModulePositions(targetAngle);
             }
 
+            if (latch && reverse && targetAngle < .01)
+                latch = false;
 
-
-
-            //    double voltsToPosition0 = swerveDrive.modules[0].getPotVolts() / swerveDrive.modules[0].getServoPosition();
             KoalaLog.log("Target Angle", targetAngle, true);
-            KoalaLog.log("PotAngle2", swerveDrive.modules[2].getWheelAngleDeg(), true);
-            KoalaLog.log("SrvCmd2", swerveDrive.modules[2].servoCmd, true);
-            KoalaLog.log("AngleServo2", swerveDrive.modules[2].getDegreesFromServoPosition(), true);
-            KoalaLog.log("PosnServo2", swerveDrive.modules[2].getServoPosition(), true);
-            KoalaLog.log("PotVolts2", swerveDrive.modules[2].getPotVolts(), true);
 
-            KoalaLog.log("PotAngle3", swerveDrive.modules[3].getWheelAngleDeg(), true);
-            KoalaLog.log("SrvCmd3", swerveDrive.modules[3].servoCmd, true);
-            KoalaLog.log("AngleServo3", swerveDrive.modules[3].getDegreesFromServoPosition(), true);
-            KoalaLog.log("PosnServo3", swerveDrive.modules[3].getServoPosition(), true);
-            KoalaLog.log("PotVolts3", swerveDrive.modules[3].getPotVolts(), true);
+            KoalaLog.log("PotVolts0", swerveDrive.modules[0].getPotVolts(), true);
+            KoalaLog.log("PotVoltsAve0", swerveDrive.modules[0].getPotVoltsAve(), true);
+
+            KoalaLog.log("SrvCmd0", swerveDrive.modules[0].getServoPosition(), true);
+
+//            KoalaLog.log("PotVolts1", swerveDrive.modules[1].getPotVolts(), true);
+//            KoalaLog.log("SrvCmd1", swerveDrive.modules[1].getServoPosition(), true);
+
+
             telemetry.update();
         }
     }

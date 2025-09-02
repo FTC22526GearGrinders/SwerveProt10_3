@@ -19,7 +19,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.utils.Units;
 
 
@@ -33,6 +32,7 @@ public class SwerveDriveServo extends SubsystemBase {
     public boolean openLoop;
     public double showTelemetry = 0;
     private Pose2d robotPose = new Pose2d();
+
 
     public SwerveDriveServo(CommandOpMode opMode) {
         SwerveModuleConfig fl = new SwerveModuleConfig(0,
@@ -65,6 +65,8 @@ public class SwerveDriveServo extends SubsystemBase {
                 )
         );
 
+      //  imu.resetYaw();
+
         m_odometry = new SwerveDriveOdometry(SwerveDriveConstants.swerveKinematics, getHeading());
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
@@ -76,7 +78,7 @@ public class SwerveDriveServo extends SubsystemBase {
 
         double new_translation = translation * SwerveDriveConstants.maxSpeedMetersPerSec;
         double new_strafe = strafe * SwerveDriveConstants.maxSpeedMetersPerSec;
-        double new_rotation = rotation * SwerveDriveConstants.maxAngleRadiansPerSecond * SwerveDriveConstants.rotationMultiplier;
+        double new_rotation = rotation * SwerveDriveConstants.maxAngularVelocity;
 
         ChassisSpeeds speeds = fieldRelative
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(new_translation, new_strafe, new_rotation, getHeading())
@@ -112,7 +114,7 @@ public class SwerveDriveServo extends SubsystemBase {
         }
     }
 
-    public void setModulePositions(double val){
+    public void setModulePositions(double val) {
         for (SwerveModuleServo module : modules) {
             module.setServoPosition(val);
         }
@@ -163,8 +165,7 @@ public class SwerveDriveServo extends SubsystemBase {
         robotPose = updateOdometry();
 
 
-
-      //  showTelemetry();
+        //  showTelemetry();
 
     }
 
@@ -189,6 +190,10 @@ public class SwerveDriveServo extends SubsystemBase {
         return new Pose2d(x, y, r2d);
     }
 
+    public void alignModulesStraight() {
+        setModulePositions(0.5);
+    }
+
 
     public void resetPose(Pose2d pose) {
         m_odometry.resetPosition(pose, getHeading());
@@ -206,9 +211,11 @@ public class SwerveDriveServo extends SubsystemBase {
     public void setModuleThetaAngleKP(int module, double val) {
         modules[module].setThetaAngleKP(val);
     }
+
     public void setModuleThetaAngleKI(int module, double val) {
         modules[module].setThetaAngleKI(val);
     }
+
     public void setModuleThetaAngleKD(int module, double val) {
         modules[module].setThetaAngleKD(val);
     }
@@ -285,7 +292,7 @@ public class SwerveDriveServo extends SubsystemBase {
 //
 //        telemetry.addData("X", robotPose.getX());
 //        telemetry.addData("Y", robotPose.getY());
-    //    telemetry.update();
+        //    telemetry.update();
     }
 
 }

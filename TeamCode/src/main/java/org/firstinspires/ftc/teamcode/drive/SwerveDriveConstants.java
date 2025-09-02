@@ -14,7 +14,7 @@ public final class SwerveDriveConstants {
     public static final double maxAngleRevsPerSecond = 1. / 6 * (.14); //servo specs .14 secs per 60 degrees 4.8 volts .84 sec per rev = 1.2 revs per sec
 
     public static final double TICKS_PER_METER = TICKS_PER_REVOLUTION / WHEEL_CIRCUMFERENCE_METERS;//approx 1200
-    public static final double maxSpeedMetersPerSec = maxMotorRevsPerSecond * WHEEL_CIRCUMFERENCE_METERS;//approx 2.4 mps
+    public static final double maxSpeedMetersPerSec = 2.4;// maxMotorRevsPerSecond * WHEEL_CIRCUMFERENCE_METERS;//approx 2.4 mps
     public static final double maxAccelerationMPSPS = maxSpeedMetersPerSec * 2;
     public static double calcKV = 12 / maxSpeedMetersPerSec;//approx 5
 
@@ -47,5 +47,31 @@ public final class SwerveDriveConstants {
 
     public static double fieldLength = Units.inchesToMeters(72.);
     public static double fieldWidth = Units.inchesToMeters(72.);
-    public static double maxAngularVelocity =4;
+    public static double maxAngularVelocity = 4;
+
+
+    //module angle servo values
+
+    public static double servoRangeSetting = 220.;
+    public static double minServoPosition = .01;
+    public static double maxServoPosition = .99;
+    public static double midServoPosition = .5;
+    public static double[] voltsAtMin = {.60, .60, .640, .640};
+    public static double[] voltsAtMax = {2.706, 2.688, 2.64, 2.66};
+    public static double[] voltsAtMid = {1.655, 1.643, 1.6, 1.6};
+
+    public static double degreesPerVolt = 360. / 3.3;//109.1
+
+
+    public static double voltsPerDegree = 1./degreesPerVolt;//.0092 = 9 milliVolts
+
+
+    public static double minAngleDegrees = -servoRangeSetting / 2;
+    public static double maxAngleDegrees = servoRangeSetting / 2;
+    public static double midAngleDegrees = 0;
+
+    public static double degreeRange = maxAngleDegrees - minAngleDegrees;//
+
+    public static double servoPositionPerDegree = 1. / servoRangeSetting;
+
 }

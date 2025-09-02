@@ -40,6 +40,7 @@ public class SwerveModuleServo extends SubsystemBase {
     public double angleOffset;
     public boolean openLoop;
     public int moduleNumber;
+
     public Telemetry telemetry;
     public double setpoint = 0;
     public double lastSetpoint = 1;
@@ -63,22 +64,6 @@ public class SwerveModuleServo extends SubsystemBase {
 
     public ElapsedTime potTimer = new ElapsedTime();
 
-    public double minServoPosition = .01;
-    public double maxServoPosition = .99;
-    public double midServoPosition = .5;
-    public double servoPositionRange = maxServoPosition - minServoPosition;//.96
-    public double[] voltsAtMin = {.64, .64, .640, .640};
-    public double[] voltsAtMax = {2.65, 2.66, 2.64, 2.66};
-    public double[] voltsAtMid = {1.655, 1.643, 1.6, 1.6};
-
-    public double degreesPerVolt = 360. / 3.3;
-    public double minAngleDegrees = -110;//68
-    public double maxAngleDegrees = 110;//288
-    public double midAngleDegrees = 0;//288
-
-    public double degreeRange = maxAngleDegrees - minAngleDegrees;//220
-
-    public double posRangeDegRangeRatio = servoPositionRange / 180;
 
     public double servoCmd;
     public double volts;
@@ -105,13 +90,14 @@ public class SwerveModuleServo extends SubsystemBase {
 
         angleServo.setDirection(Servo.Direction.REVERSE);
 
+
         if (angleServo.getDirection() == Servo.Direction.FORWARD) {
-            double[] temp = voltsAtMin;
-            voltsAtMin = voltsAtMax.clone();
-            voltsAtMax = temp.clone();
-            double temp1 = minAngleDegrees;
-            minAngleDegrees = maxAngleDegrees;
-            maxAngleDegrees = temp1;
+            double[] temp = SwerveDriveConstants.voltsAtMin;
+            SwerveDriveConstants.voltsAtMin = SwerveDriveConstants.voltsAtMax.clone();
+            SwerveDriveConstants.voltsAtMax = temp.clone();
+            double temp1 = SwerveDriveConstants.minAngleDegrees;
+            SwerveDriveConstants.minAngleDegrees = SwerveDriveConstants.maxAngleDegrees;
+            SwerveDriveConstants.maxAngleDegrees = temp1;
 
         }
 
@@ -120,7 +106,7 @@ public class SwerveModuleServo extends SubsystemBase {
 
         angleOffset = config.offset;
 
-        angleController.enableContinuousInput(-180, 180);
+        angleController.enableContinuousInput(-120, 120);
 
         angleController.setIZone(5);
 
@@ -240,16 +226,17 @@ public class SwerveModuleServo extends SubsystemBase {
     }
 
     public double getServoPositionFromDegrees(double deg) {
-        return midServoPosition + deg * posRangeDegRangeRatio;
+        return SwerveDriveConstants.midServoPosition - deg * SwerveDriveConstants.servoPositionPerDegree;
     }
 
     public double getDegreesFromServoPosition() {
-        return (getServoPosition() - midServoPosition) / posRangeDegRangeRatio;
+        return (getServoPosition() - SwerveDriveConstants.midServoPosition) / SwerveDriveConstants.servoPositionPerDegree;
     }
 
     public void setAngle(SwerveModuleState state) {
         double deg = state.angle.getDegrees();
         servoCmd = getServoPositionFromDegrees(deg);
+        if (servoCmd == 1) servoCmd = .99;
         angleServo.setPosition(servoCmd);
     }
 
@@ -260,7 +247,7 @@ public class SwerveModuleServo extends SubsystemBase {
 
 
     public double getServoPosition() {
-        return round2dp(angleServo.getPosition(), 2);
+        return angleServo.getPosition();
     }
 
     public void setServoPosition(double val) {
@@ -302,11 +289,11 @@ public class SwerveModuleServo extends SubsystemBase {
     public void setState(SwerveModuleState state) {
         wheelDegs = getWheelAngleDeg();
         //check for new angle
-        if (state.angle.getDegrees() != origState.angle.getDegrees()) {
+        if (state.angle.getDegrees() != origState.angle.getDegrees() || state.speedMetersPerSecond != origState.speedMetersPerSecond) {
             newState = state;
             // newState = SwerveModuleState.optimize(state, Rotation2d.fromDegrees(wheelDegs));
             //flip angle if it went out of range
-            if (newState.angle.getDegrees() > maxAngleDegrees || newState.angle.getDegrees() < minAngleDegrees)
+            if (newState.angle.getDegrees() > SwerveDriveConstants.maxAngleDegrees || newState.angle.getDegrees() < SwerveDriveConstants.minAngleDegrees)
                 newState = new SwerveModuleState(
                         -newState.speedMetersPerSecond,
                         newState.angle.rotateBy(Rotation2d.fromDegrees(180.0)));
@@ -330,7 +317,7 @@ public class SwerveModuleServo extends SubsystemBase {
 
     public double getSpeedFromPot() {
         volts = servoPotentiometer.getVoltage();
-        potAngle = round2dp(volts * degreesPerVolt, 2);
+        potAngle = round2dp(volts * SwerveDriveConstants.degreesPerVolt, 2);
         double readTime = potTimer.milliseconds();
         angleChange = potAngle - lastAngle;
         timeChange = lastPotReadTime - readTime;
@@ -363,18 +350,18 @@ public class SwerveModuleServo extends SubsystemBase {
         //140 deg = 2.7 volts
         //0 deg = 1.65 volts
 
-        double diff = getPotVolts() - voltsAtMid[moduleNumber];
-        potAngle = midAngleDegrees + (diff * degreesPerVolt);
+        double diff = getPotVolts() - SwerveDriveConstants.voltsAtMid[moduleNumber];
+        potAngle = SwerveDriveConstants.midAngleDegrees + (diff * SwerveDriveConstants.degreesPerVolt);
         return potAngle;
     }
 
     public double getPotVolts() {
         //return ra.getAverage();
-        return servoPotentiometer.getVoltage();
+        return round2dp(servoPotentiometer.getVoltage(),3);
     }
 
     public double getPotVoltsAve() {
-        return ra.getAverage();
+        return round2dp(ra.getAverage(),3);
     }
 
     public double getWheelSpeedMPS() {

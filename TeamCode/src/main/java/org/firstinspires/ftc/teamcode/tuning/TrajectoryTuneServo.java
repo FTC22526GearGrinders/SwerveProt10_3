@@ -101,7 +101,7 @@ public class TrajectoryTuneServo extends CommandOpMode {
             TelemetryPacket packet = new TelemetryPacket();
             packet.fieldOverlay().setStroke("#3F51B5");
             Pose2d inchPose = swerveDrive.getPoseInchUnits(swerveDrive.getPose());
-            Drawing.drawRobot(packet.fieldOverlay(), inchPose, telemetry);
+            Drawing.drawRobot(packet.fieldOverlay(), swerveDrive, true,telemetry);
             FtcDashboard.getInstance().sendTelemetryPacket(packet);
             telemetry.update();
             previousGamepad1.copy(currentGamepad1);
