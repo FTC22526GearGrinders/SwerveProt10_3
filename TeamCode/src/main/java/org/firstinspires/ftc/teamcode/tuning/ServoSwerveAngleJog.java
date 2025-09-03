@@ -34,14 +34,13 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.command.CommandOpMode;
-import com.arcrobotics.ftclib.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.drive.ServoDriveCommand;
 import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
 import org.firstinspires.ftc.teamcode.drive.SwerveDriveServo;
-import org.firstinspires.ftc.teamcode.utils.Drawing;
+import org.firstinspires.ftc.teamcode.utils.DrawModules;
 
 import Ori.Coval.Logging.Logger.KoalaLog;
 
@@ -65,7 +64,7 @@ import Ori.Coval.Logging.Logger.KoalaLog;
 //@Disabled
 
 @Config
-public class SwerveAngleJog extends CommandOpMode {
+public class ServoSwerveAngleJog extends CommandOpMode {
 
     // Declare OpMode members.
 
@@ -101,7 +100,7 @@ public class SwerveAngleJog extends CommandOpMode {
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
         register(swerveDrive);
         KoalaLog.setup(hardwareMap);
-
+       // new ServoDriveCommand(swerveDrive, currentGamepad1, false, this).schedule();
     }
 
     @Override
@@ -118,8 +117,8 @@ public class SwerveAngleJog extends CommandOpMode {
 
             swerveDrive.modules[0].angleServo.setPosition(targetAngle);
             swerveDrive.modules[1].angleServo.setPosition(targetAngle);
-            swerveDrive.modules[2].angleServo.setPosition(targetAngle);
-            swerveDrive.modules[3].angleServo.setPosition(targetAngle);
+//            swerveDrive.modules[2].angleServo.setPosition(targetAngle);
+//            swerveDrive.modules[3].angleServo.setPosition(targetAngle);
 
 
             if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
@@ -160,8 +159,7 @@ public class SwerveAngleJog extends CommandOpMode {
             }
 
             if (currentGamepad1.b) {
-                modSel--;
-                if (modSel < 0) modSel = numberOfMdules - 1;
+
             }
 
             if (currentGamepad1.x && !previousGamepad1.x) {
@@ -189,14 +187,11 @@ public class SwerveAngleJog extends CommandOpMode {
 
 
 
-            telemetry.addData("Controller", swerveDrive.modules[0].angleServo.getController());
-            TelemetryPacket packet = new TelemetryPacket(false);
-            packet.fieldOverlay().setStroke("#3F51B5");
-            FtcDashboard.getInstance().sendTelemetryPacket(packet);
             telemetry.addData("ModuleSel", modSel);
             telemetry.addData("Target", targetAngle);
-
             telemetry.addData("PotVolts", round2dp(swerveDrive.modules[modSel].getPotVolts(), 3));
+
+            telemetry.addData("Speed", round2dp(swerveDrive.modules[modSel].getState().speedMetersPerSecond, 3));
 
             telemetry.addData("PotVoltsAve", round2dp(swerveDrive.modules[modSel].getPotVoltsAve(), 3));
             telemetry.addData("ServoCmd", round2dp(swerveDrive.modules[modSel].getServoPosition(), 3));

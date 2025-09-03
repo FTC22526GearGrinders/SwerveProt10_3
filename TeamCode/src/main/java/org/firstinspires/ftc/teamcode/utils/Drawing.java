@@ -5,6 +5,7 @@ import com.arcrobotics.ftclib.geometry.Pose2d;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.drive.SwerveDriveServo;
+import org.opencv.core.Point;
 
 public final class Drawing {
     ;
@@ -30,35 +31,8 @@ public final class Drawing {
         double P2y = ycenter;
 
         c.strokeLine(P1x, P1y, P2x, P2y);
-
-        if (showModules) {
-            c.setStrokeWidth(2);
-            c.strokeText("X+",68,0,"",0);
-            c.strokeText("Y+",0,68,"",0);
-            double moduleLength = 5;
-            double moduleOriginX = 36;
-            double moduleOriginY = 36;
-            double flX = moduleOriginX + moduleLength * Math.cos(swerveDrive.modules[0].getState().angle.getRadians());
-            double flY = moduleOriginY + moduleLength * Math.sin(swerveDrive.modules[0].getState().angle.getRadians());
-
-            double frX = moduleOriginX + moduleLength * Math.cos(swerveDrive.modules[1].getState().angle.getRadians());
-            double frY = moduleOriginY + moduleLength * Math.sin(swerveDrive.modules[1].getState().angle.getRadians());
-
-            double rlX = moduleOriginX  + moduleLength * Math.cos(swerveDrive.modules[2].getState().angle.getRadians());
-            double rlY = moduleOriginY + moduleLength * Math.sin(swerveDrive.modules[2].getState().angle.getRadians());
-
-            double rrX = moduleOriginX  + moduleLength * Math.cos(swerveDrive.modules[3].getState().angle.getRadians());
-            double rrY = moduleOriginY + moduleLength * Math.sin(swerveDrive.modules[3].getState().angle.getRadians());
-
-            c.strokeLine(moduleOriginX, moduleOriginY, flX, flY);
-            c.strokeLine(moduleOriginX , moduleOriginY, frX, frY);
-            c.strokeLine(moduleOriginX, moduleOriginY, rlX, rlY);
-            c.strokeLine(moduleOriginX, moduleOriginY, rrX, rrY);
-
-        }
-
-
     }
 
 
 }
+

@@ -92,7 +92,7 @@ public class SwerveModuleServo extends SubsystemBase {
 
 
         if (angleServo.getDirection() == Servo.Direction.FORWARD) {
-            double[] temp = SwerveDriveConstants.voltsAtMin;
+            double[] temp = SwerveDriveConstants.voltsAtMin.clone();
             SwerveDriveConstants.voltsAtMin = SwerveDriveConstants.voltsAtMax.clone();
             SwerveDriveConstants.voltsAtMax = temp.clone();
             double temp1 = SwerveDriveConstants.minAngleDegrees;
@@ -356,12 +356,14 @@ public class SwerveModuleServo extends SubsystemBase {
     }
 
     public double getPotVolts() {
-        //return ra.getAverage();
-        return round2dp(servoPotentiometer.getVoltage(),3);
+        if (angleServo.getDirection() == Servo.Direction.REVERSE)
+            return round2dp(servoPotentiometer.getVoltage(), 3);
+        else
+            return 3.3 - round2dp(servoPotentiometer.getVoltage(), 3);
     }
 
     public double getPotVoltsAve() {
-        return round2dp(ra.getAverage(),3);
+        return round2dp(ra.getAverage(), 3);
     }
 
     public double getWheelSpeedMPS() {

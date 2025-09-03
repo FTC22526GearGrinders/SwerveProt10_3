@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.teamcode.drive.RunTrajectoryCommandSwerve;
 import org.firstinspires.ftc.teamcode.drive.ServoDriveCommand;
 import org.firstinspires.ftc.teamcode.drive.SwerveDriveServo;
+import org.firstinspires.ftc.teamcode.utils.DrawModules;
 import org.firstinspires.ftc.teamcode.utils.Drawing;
 import org.firstinspires.ftc.teamcode.utils.Trajectories;
 
@@ -64,12 +65,18 @@ public class SwerveDriveServoOpMode extends CommandOpMode {
                 new RunTrajectoryCommandSwerve(swerveDrive, trajectories.crossLine, this).schedule();
             }
 
-
-            TelemetryPacket packet = new TelemetryPacket();
+            TelemetryPacket packet = new TelemetryPacket(false);
+            packet.fieldOverlay()
+                    .drawGrid(0, 0, 144, 144, 7, 7);
             packet.fieldOverlay().setStroke("#3F51B5");
-            Pose2d inchPose = swerveDrive.getPoseInchUnits(swerveDrive.getPose());
-            Drawing.drawRobot(packet.fieldOverlay(), swerveDrive, true, telemetry);
+            DrawModules.drawModules(packet.fieldOverlay(), swerveDrive, 0);
             FtcDashboard.getInstance().sendTelemetryPacket(packet);
+
+//          TelemetryPacket packet = new TelemetryPacket();
+//            packet.fieldOverlay().setStroke("#3F51B5");
+//            Pose2d inchPose = swerveDrive.getPoseInchUnits(swerveDrive.getPose());
+//            Drawing.drawRobot(packet.fieldOverlay(), swerveDrive, true, telemetry);
+ //           FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
             double wheelAngle = swerveDrive.modules[0].getWheelAngleDeg();
             telemetry.addData("A0PotVolts", round2dp(swerveDrive.modules[0].getPotVolts(), 2));
