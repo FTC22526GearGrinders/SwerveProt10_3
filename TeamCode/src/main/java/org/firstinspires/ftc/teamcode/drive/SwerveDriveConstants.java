@@ -52,7 +52,7 @@ public final class SwerveDriveConstants {
 
     //module angle servo values
 
-    public static double servoRangeSetting = 220.;
+    public static double servoRangeSetting = 250;
     public static double minServoPosition = .01;
     public static double maxServoPosition = .99;
     public static double midServoPosition = .5;

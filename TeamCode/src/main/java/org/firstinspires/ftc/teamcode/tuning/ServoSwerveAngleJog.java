@@ -74,7 +74,7 @@ public class ServoSwerveAngleJog extends CommandOpMode {
     Gamepad currentGamepad1 = new Gamepad();
     Gamepad previousGamepad1 = new Gamepad();
     FtcDashboard dashboard;
-    double targetAngle = .5;
+    double targetAngle = 0;
 
     double targetIncrement = 0;
 
@@ -117,8 +117,8 @@ public class ServoSwerveAngleJog extends CommandOpMode {
 
             swerveDrive.modules[0].angleServo.setPosition(targetAngle);
             swerveDrive.modules[1].angleServo.setPosition(targetAngle);
-//            swerveDrive.modules[2].angleServo.setPosition(targetAngle);
-//            swerveDrive.modules[3].angleServo.setPosition(targetAngle);
+            swerveDrive.modules[2].angleServo.setPosition(targetAngle);
+            swerveDrive.modules[3].angleServo.setPosition(targetAngle);
 
 
             if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
@@ -154,12 +154,13 @@ public class ServoSwerveAngleJog extends CommandOpMode {
 
 
             if (currentGamepad1.a && !previousGamepad1.a) {
-                modSel++;
-                if (modSel > numberOfMdules - 1) modSel = 0;
+                targetAngle = 0.94;
+//                modSel++;
+//                if (modSel > numberOfMdules - 1) modSel = 0;
             }
 
             if (currentGamepad1.b) {
-
+targetAngle = 0.235;
             }
 
             if (currentGamepad1.x && !previousGamepad1.x) {
@@ -177,10 +178,10 @@ public class ServoSwerveAngleJog extends CommandOpMode {
                 targetAngle = .99;
             }
             if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down) {
-                targetAngle += .1 * angleMult;
+                targetAngle -= .01 * angleMult;
             }
-            if (currentGamepad1.dpad_up) {
-                targetAngle = .5 * angleMult;
+            if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up) {
+                targetAngle += .01 * angleMult;
             }
 
             lpctr++;

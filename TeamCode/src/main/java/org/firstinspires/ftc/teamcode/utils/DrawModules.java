@@ -108,10 +108,10 @@ public final class DrawModules {
         c.strokeLine(moduleOriginX, moduleOriginY, flX, flY);
         c.setStroke("green");
         c.strokeLine(moduleOriginX, moduleOriginY, frX, frY);
-//        c.setStroke("blue");
-//        c.strokeLine(moduleOriginX, moduleOriginY, rlX, rlY);
-//        c.setStroke("yellow");
-//        c.strokeLine(moduleOriginX, moduleOriginY, rrX, rrY);
+        c.setStroke("blue");
+        c.strokeLine(moduleOriginX, moduleOriginY, rlX, rlY);
+        c.setStroke("yellow");
+        c.strokeLine(moduleOriginX, moduleOriginY, rrX, rrY);
 
     }
 }
