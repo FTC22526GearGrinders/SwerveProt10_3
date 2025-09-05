@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.drive;
 
 import com.arcrobotics.ftclib.geometry.Translation2d;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.SwerveDriveKinematics;
+import com.arcrobotics.ftclib.util.InterpLUT;
 
 import org.firstinspires.ftc.teamcode.utils.Units;
 
@@ -60,10 +61,10 @@ public final class SwerveDriveConstants {
     public static double[] voltsAtMax = {2.706, 2.688, 2.64, 2.66};
     public static double[] voltsAtMid = {1.655, 1.643, 1.6, 1.6};
 
-    public static double degreesPerVolt = 360. / 3.3;//109.1
+    public static double degreesPerVolt = 109;//360. / 3.3;//109.1
 
 
-    public static double voltsPerDegree = 1./degreesPerVolt;//.0092 = 9 milliVolts
+    public static double voltsPerDegree = 1. / degreesPerVolt;//.0092 = 9 milliVolts
 
 
     public static double minAngleDegrees = -servoRangeSetting / 2;
@@ -74,4 +75,8 @@ public final class SwerveDriveConstants {
 
     public static double servoPositionPerDegree = 1. / servoRangeSetting;
 
-}
+
+    }
+
+
+

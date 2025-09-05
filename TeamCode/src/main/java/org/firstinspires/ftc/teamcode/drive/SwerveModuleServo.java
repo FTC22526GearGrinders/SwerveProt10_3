@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive;
 
+
+
 import androidx.core.math.MathUtils;
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -23,7 +25,7 @@ import org.firstinspires.ftc.teamcode.utils.Units;
 
 
 public class SwerveModuleServo extends SubsystemBase {
-
+    public static double DEADBANDVOLTS = .01;
     private final PIDControllerFRC driveController = new PIDControllerFRC(0.01, 0, 0, .02);
     private final PIDControllerFRC angleController = new PIDControllerFRC(.015, 0.0, 0., 0.02);
     private final double acceLimit = 5;
@@ -77,6 +79,7 @@ public class SwerveModuleServo extends SubsystemBase {
     //from logs and excel pot volts = 2.109 * servo position + .6102
     //servo position = (pot volts -.6102) / 2.109
     private RollingAverage ra;
+    private double targetVolts;
 
     public SwerveModuleServo(SwerveModuleConfig config, CommandOpMode opMode) {
         driveMotor = opMode.hardwareMap.get(DcMotorEx.class, config.driveMotorName);
@@ -88,7 +91,7 @@ public class SwerveModuleServo extends SubsystemBase {
 
         angleServo = opMode.hardwareMap.get(Servo.class, config.angleServoName);
 
-        angleServo.setDirection(Servo.Direction.REVERSE);
+        angleServo.setDirection(Servo.Direction.FORWARD);
 
 
         if (angleServo.getDirection() == Servo.Direction.FORWARD) {
@@ -117,6 +120,7 @@ public class SwerveModuleServo extends SubsystemBase {
         ra = new RollingAverage(5);
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
+
         telemetry = new MultipleTelemetry(opMode.telemetry, dashboard.getTelemetry());
     }
 
@@ -246,6 +250,43 @@ public class SwerveModuleServo extends SubsystemBase {
     }
 
 
+    public void setAngleFromLUT(SwerveModuleState state) {
+
+        double targetAngle = state.angle.getDegrees();
+
+        double targetAngleWrapped = MathUtils.clamp(targetAngle, -180, 180);
+
+        if (targetAngleWrapped < 0) targetAngleWrapped += 180;
+
+        targetAngleWrapped = MathUtils.clamp(targetAngleWrapped, 0.01, 180);
+
+        double voltsAverage = ra.getAverage();
+
+        targetVolts = getVoltsFromAngle(targetAngleWrapped);
+
+        double voltsError = angleController.calculate(voltsAverage, targetVolts);
+
+
+        double clampedVE = MathUtils.clamp(voltsError, -.2, .2);
+
+        if (!atPositionVolts(DEADBANDVOLTS))
+            servoCmd += clampedVE;
+        double positionError = servoCmd - angleServo.getPosition();
+
+
+        angleServo.setPosition(servoCmd);
+    }
+
+    public double getVoltsFromAngle(double angle) {
+        if (angle < 0) angle += 180;
+        return (3.2 - .14) * angle / 360.;
+    }
+
+    private boolean atPositionVolts(double bandwidth) {
+        return Math.abs(targetVolts - ra.getAverage()) < bandwidth;
+    }
+
+
     public double getServoPosition() {
         return angleServo.getPosition();
     }
@@ -305,7 +346,7 @@ public class SwerveModuleServo extends SubsystemBase {
             setSpeedClosedLoop(newState);
 //
 //        setAngleTrapezoid(newState);
-        setAngle(newState);
+        setAngleFromLUT(newState);
 
     }
 
@@ -356,10 +397,11 @@ public class SwerveModuleServo extends SubsystemBase {
     }
 
     public double getPotVolts() {
-        if (angleServo.getDirection() == Servo.Direction.REVERSE)
-            return round2dp(servoPotentiometer.getVoltage(), 3);
-        else
-            return 3.3 - round2dp(servoPotentiometer.getVoltage(), 3);
+//        if (angleServo.getDirection() == Servo.Direction.REVERSE)
+//            return round2dp(servoPotentiometer.getVoltage(), 3);
+//        else
+//            return 3.3 - round2dp(servoPotentiometer.getVoltage(), 3);
+        return round2dp(servoPotentiometer.getVoltage(), 3);
     }
 
     public double getPotVoltsAve() {
