@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.drive;
 
 
-
 import androidx.core.math.MathUtils;
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -39,7 +38,7 @@ public class SwerveModuleServo extends SubsystemBase {
     public Servo angleServo;
     public DcMotorEx driveMotor;
     public AnalogInput servoPotentiometer;
-    public double angleOffset;
+    public double servoCmdOffset;
     public boolean openLoop;
     public int moduleNumber;
 
@@ -91,7 +90,7 @@ public class SwerveModuleServo extends SubsystemBase {
 
         angleServo = opMode.hardwareMap.get(Servo.class, config.angleServoName);
 
-        angleServo.setDirection(Servo.Direction.FORWARD);
+        angleServo.setDirection(Servo.Direction.REVERSE);
 
 
         if (angleServo.getDirection() == Servo.Direction.FORWARD) {
@@ -101,13 +100,12 @@ public class SwerveModuleServo extends SubsystemBase {
             double temp1 = SwerveDriveConstants.minAngleDegrees;
             SwerveDriveConstants.minAngleDegrees = SwerveDriveConstants.maxAngleDegrees;
             SwerveDriveConstants.maxAngleDegrees = temp1;
-
         }
 
 
         servoPotentiometer = opMode.hardwareMap.get(AnalogInput.class, config.absoluteEncoderName);
 
-        angleOffset = config.offset;
+        servoCmdOffset = config.servoCmdOffset;
 
         angleController.enableContinuousInput(-120, 120);
 
@@ -122,12 +120,6 @@ public class SwerveModuleServo extends SubsystemBase {
         FtcDashboard dashboard = FtcDashboard.getInstance();
 
         telemetry = new MultipleTelemetry(opMode.telemetry, dashboard.getTelemetry());
-    }
-
-    public static double round2dp(double number, int dp) {
-        double temp = Math.pow(10, dp);
-        double temp1 = Math.round(number * temp);
-        return temp1 / temp;
     }
 
     public void createFeedForward(double ks, double kv, double ka) {
@@ -233,20 +225,16 @@ public class SwerveModuleServo extends SubsystemBase {
         return SwerveDriveConstants.midServoPosition - deg * SwerveDriveConstants.servoPositionPerDegree;
     }
 
-    public double getDegreesFromServoPosition() {
-        return (getServoPosition() - SwerveDriveConstants.midServoPosition) / SwerveDriveConstants.servoPositionPerDegree;
-    }
-
     public void setAngle(SwerveModuleState state) {
         double deg = state.angle.getDegrees();
         servoCmd = getServoPositionFromDegrees(deg);
         if (servoCmd == 1) servoCmd = .99;
-        angleServo.setPosition(servoCmd);
+        setServoPosition(servoCmd);
     }
 
     public void setAngleDegrees(double deg) {
         double servoCmd = getServoPositionFromDegrees(deg);
-        angleServo.setPosition(servoCmd);
+        setServoPosition(servoCmd);
     }
 
 
@@ -273,8 +261,7 @@ public class SwerveModuleServo extends SubsystemBase {
             servoCmd += clampedVE;
         double positionError = servoCmd - angleServo.getPosition();
 
-
-        angleServo.setPosition(servoCmd);
+        setServoPosition(servoCmd);
     }
 
     public double getVoltsFromAngle(double angle) {
@@ -292,7 +279,7 @@ public class SwerveModuleServo extends SubsystemBase {
     }
 
     public void setServoPosition(double val) {
-        angleServo.setPosition(val);
+        angleServo.setPosition(val + servoCmdOffset);
     }
 
 
@@ -350,32 +337,8 @@ public class SwerveModuleServo extends SubsystemBase {
 
     }
 
-    public void presetServoToPot() {
-        double angle = getWheelAngleDeg();
-        double servoCmd = getServoPositionFromDegrees(angle);
-        setServoPosition(servoCmd);
-    }
-
-    public double getSpeedFromPot() {
-        volts = servoPotentiometer.getVoltage();
-        potAngle = round2dp(volts * SwerveDriveConstants.degreesPerVolt, 2);
-        double readTime = potTimer.milliseconds();
-        angleChange = potAngle - lastAngle;
-        timeChange = lastPotReadTime - readTime;
-        lastPotReadTime = readTime;
-        // if angle crosses zero between reads then add 360 to compensagte
-        if (lastAngle > potAngle) angleChange += 360;
-        lastAngle = potAngle;
-        return angleChange / timeChange;
-
-    }
-
     public void setOpenLoop(boolean val) {
         openLoop = val;
-    }
-
-    public double getTargetMPS() {
-        return newState.speedMetersPerSecond;
     }
 
     public double getWheelAngleRad() {
@@ -387,25 +350,17 @@ public class SwerveModuleServo extends SubsystemBase {
     }
 
     public double getWheelAngleDeg() {
-        //-140 deg = .6 volts
-        //140 deg = 2.7 volts
-        //0 deg = 1.65 volts
-
         double diff = getPotVolts() - SwerveDriveConstants.voltsAtMid[moduleNumber];
         potAngle = SwerveDriveConstants.midAngleDegrees + (diff * SwerveDriveConstants.degreesPerVolt);
         return potAngle;
     }
 
     public double getPotVolts() {
-//        if (angleServo.getDirection() == Servo.Direction.REVERSE)
-//            return round2dp(servoPotentiometer.getVoltage(), 3);
-//        else
-//            return 3.3 - round2dp(servoPotentiometer.getVoltage(), 3);
-        return round2dp(servoPotentiometer.getVoltage(), 3);
+        return servoPotentiometer.getVoltage();
     }
 
     public double getPotVoltsAve() {
-        return round2dp(ra.getAverage(), 3);
+        return ra.getAverage();
     }
 
     public double getWheelSpeedMPS() {

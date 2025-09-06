@@ -47,11 +47,6 @@ public class RunTrajectoryCommandSwerve extends CommandBase {
         addRequirements(this.drive);
     }
 
-    public static double round2dp(double number, int dp) {
-        double temp = Math.pow(10, dp);
-        double temp1 = Math.round(number * temp);
-        return temp1 / temp;
-    }
 
     @Override
     public void initialize() {

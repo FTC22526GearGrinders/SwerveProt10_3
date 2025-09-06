@@ -48,12 +48,6 @@ public class RunTrajectoryCommandSim extends CommandBase {
         addRequirements(this.driveSim);
     }
 
-    public static double round2dp(double number, int dp) {
-        double temp = Math.pow(10, dp);
-        double temp1 = Math.round(number * temp);
-        return temp1 / temp;
-    }
-
     @Override
     public void initialize() {
         Pose2d initialPose = traj.getInitialPose();

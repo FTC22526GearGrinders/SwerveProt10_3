@@ -79,12 +79,12 @@ public class SwerveDriveServoOpMode extends CommandOpMode {
  //           FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
             double wheelAngle = swerveDrive.modules[0].getWheelAngleDeg();
-            telemetry.addData("A0PotVolts", round2dp(swerveDrive.modules[0].getPotVolts(), 2));
-            telemetry.addData("A0FromPot", round2dp(wheelAngle, 2));
-            telemetry.addData("Speed0", round2dp(swerveDrive.modules[0].newState.speedMetersPerSecond, 2));
-            telemetry.addData("A0Tgt", round2dp(swerveDrive.modules[0].newState.angle.getDegrees(), 2));
-            telemetry.addData("A0SVPos", round2dp(swerveDrive.modules[0].getServoPosition(), 2));
-            telemetry.addData("Yaw", round2dp(swerveDrive.getHeading().getDegrees(), 2));
+            telemetry.addData("A0PotVolts", "%5.3f",swerveDrive.modules[0].getPotVolts());
+            telemetry.addData("A0FromPot", "%5.3f",wheelAngle);
+            telemetry.addData("Speed0", "%5.3f",swerveDrive.modules[0].newState.speedMetersPerSecond);
+            telemetry.addData("A0Tgt", "%5.3f",swerveDrive.modules[0].newState.angle.getDegrees());
+            telemetry.addData("A0SVPos", "%5.3f",swerveDrive.modules[0].getServoPosition());
+            telemetry.addData("Yaw", "%5.3f",swerveDrive.getHeading().getDegrees());
 
 //
 //            telemetry.addData("A1FromPot", swerveDrive.modules[1].getWheelAngleDeg());
@@ -109,9 +109,4 @@ public class SwerveDriveServoOpMode extends CommandOpMode {
         }
     }
 
-    public static double round2dp(double number, int dp) {
-        double temp = Math.pow(10, dp);
-        double temp1 = Math.round(number * temp);
-        return temp1 / temp;
-    }
 }

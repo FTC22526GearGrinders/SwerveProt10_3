@@ -32,15 +32,12 @@ package org.firstinspires.ftc.teamcode.tuning;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
-import org.firstinspires.ftc.teamcode.drive.ServoDriveCommand;
 import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
 import org.firstinspires.ftc.teamcode.drive.SwerveDriveServo;
-import org.firstinspires.ftc.teamcode.utils.DrawModules;
 
 import Ori.Coval.Logging.Logger.KoalaLog;
 
@@ -84,14 +81,8 @@ public class ServoSwerveAngleJog extends CommandOpMode {
 
     double driveSpeed;
 
-    int numberOfMdules = 2;
-    boolean useAngle = false;
+    int numberOfModules = 4;
 
-    public static double round2dp(double number, int dp) {
-        double temp = Math.pow(10, dp);
-        double temp1 = Math.round(number * temp);
-        return temp1 / temp;
-    }
 
     @Override
     public void initialize() {
@@ -115,24 +106,15 @@ public class ServoSwerveAngleJog extends CommandOpMode {
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
 
-            if (!useAngle) {
+
 
                 swerveDrive.modules[0].angleServo.setPosition(targetAngle);
                 swerveDrive.modules[1].angleServo.setPosition(targetAngle);
                 swerveDrive.modules[2].angleServo.setPosition(targetAngle);
                 swerveDrive.modules[3].angleServo.setPosition(targetAngle);
-            } else {
-
-                swerveDrive.modules[0].setAngleDegrees(targetAngle);
-                swerveDrive.modules[1].setAngleDegrees(targetAngle);
-                swerveDrive.modules[2].setAngleDegrees(targetAngle);
-                swerveDrive.modules[3].setAngleDegrees(targetAngle);
 
 
-            }
 
-
-            if (currentGamepad1.start && !previousGamepad1.start) useAngle = !useAngle;
 
 //                driveSpeed = gamepad1.left_stick_y * SwerveDriveConstants.maxSpeedMetersPerSec;
 //                swerveDrive.modules[0].driveMotor.setPower(driveSpeed);
@@ -147,72 +129,61 @@ public class ServoSwerveAngleJog extends CommandOpMode {
 //                swerveDrive.modules[3].driveMotor.setPower(driveSpeed);
 //            }
 
-            double angleMult = SwerveDriveConstants.servoRangeSetting;
-
-            if (!useAngle) angleMult = 1.;
 
             if (currentGamepad1.left_bumper && !previousGamepad1.left_bumper) {
-                targetAngle = .6 * angleMult;
-                if (targetAngle > SwerveDriveConstants.servoRangeSetting) targetAngle -= SwerveDriveConstants.servoRangeSetting;
+                targetAngle = .6;
+                if (targetAngle > SwerveDriveConstants.servoRangeSetting)
+                    targetAngle -= SwerveDriveConstants.servoRangeSetting;
             }
             if (currentGamepad1.right_bumper && !previousGamepad1.right_bumper) {
-                targetAngle = .55 * angleMult;
-                if (targetAngle > 90) targetAngle -= SwerveDriveConstants.servoRangeSetting;
+                targetAngle = .1;
             }
 
 
             if (currentGamepad1.a && !previousGamepad1.a) {
                 modSel++;
-                if (modSel > numberOfMdules - 1) modSel = 0;
+                if (modSel > numberOfModules - 1) modSel = 0;
             }
 
             if (currentGamepad1.b) {
-                targetAngle = 0.5 * angleMult;
-                if (targetAngle > 90) targetAngle -= SwerveDriveConstants.servoRangeSetting;
+                targetAngle = 0.5;
             }
 
             if (currentGamepad1.x && !previousGamepad1.x) {
-                targetAngle = 0.25 * angleMult;
-                if (targetAngle > 90) targetAngle -= SwerveDriveConstants.servoRangeSetting;
+                targetAngle = 0.25;
             }
 
             if (currentGamepad1.y && !previousGamepad1.y) {
-                targetAngle = .75 * angleMult;
-                if (targetAngle > 90) targetAngle -= SwerveDriveConstants.servoRangeSetting;
+                targetAngle = .75;
             }
 
             if (currentGamepad1.dpad_left) {
-                targetAngle = 0.01 * angleMult;
-                if (targetAngle > 90) targetAngle -= SwerveDriveConstants.servoRangeSetting;
+                targetAngle = 0.01;
             }
             if (currentGamepad1.dpad_right) {
-                targetAngle = .99 * angleMult;
-                if (targetAngle > 90) targetAngle -= SwerveDriveConstants.servoRangeSetting;
+                targetAngle = .99;
             }
             if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down) {
-                targetAngle -= .01 * angleMult;
+                targetAngle -= .01;
                 if (targetAngle > 90) targetAngle -= SwerveDriveConstants.servoRangeSetting;
             }
             if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up) {
-                targetAngle += .01 * angleMult;
-                if (targetAngle > 90) targetAngle -= SwerveDriveConstants.servoRangeSetting;
+                targetAngle += .01;
             }
 
             lpctr++;
 
 
             telemetry.addData("ModuleSel", modSel);
-            telemetry.addData("AngleMult", angleMult);
 
             telemetry.addData("Target", targetAngle);
-            telemetry.addData("PotVolts", round2dp(swerveDrive.modules[modSel].getPotVolts(), 3));
+            telemetry.addData("PotVolts", "%5.3f", swerveDrive.modules[modSel].getPotVolts());
+            telemetry.addData("PotVoltsAve", "%5.3f", swerveDrive.modules[modSel].getPotVoltsAve());
+            telemetry.addData("ServoCmd", "%5.3f", swerveDrive.modules[modSel].getServoPosition());
+            telemetry.addData("AngleFromPot", "%5.3f", swerveDrive.modules[modSel].getWheelAngleDeg());
+            telemetry.addData("Speed", "%5.3f", swerveDrive.modules[modSel].getState().speedMetersPerSecond);
 
-            telemetry.addData("Speed", round2dp(swerveDrive.modules[modSel].getState().speedMetersPerSecond, 3));
 
-            telemetry.addData("PotVoltsAve", round2dp(swerveDrive.modules[modSel].getPotVoltsAve(), 3));
-            telemetry.addData("ServoCmd", round2dp(swerveDrive.modules[modSel].getServoPosition(), 3));
-            telemetry.addData("AngleFromPot", round2dp(swerveDrive.modules[modSel].getWheelAngleDeg(), 3));
-            telemetry.addData("AngleFromServo", round2dp(swerveDrive.modules[modSel].getDegreesFromServoPosition(), 3));
             telemetry.update();
 
         }

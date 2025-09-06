@@ -5,18 +5,18 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 public class SwerveModuleConfig {
 
     public final String driveMotorName, angleServoName, absoluteEncoderName;
-    public final double offset;
+    public final double servoCmdOffset;
 
     public final int moduleNumber;
 
     public DcMotorSimple.Direction angleReverse;
 
-    public SwerveModuleConfig(int modNumber, String driveMotorName, String angleServoName, String absoluteEncoderName, double offset, DcMotorSimple.Direction angleReverse) {
+    public SwerveModuleConfig(int modNumber, String driveMotorName, String angleServoName, String absoluteEncoderName, double servoCmdOffset, DcMotorSimple.Direction angleReverse) {
         this.driveMotorName = driveMotorName;
         this.angleServoName = angleServoName;
         this.absoluteEncoderName = absoluteEncoderName;
         this.angleReverse = angleReverse;
-        this.offset = offset;
+        this.servoCmdOffset = servoCmdOffset;
         this.moduleNumber = modNumber;
     }
 }
