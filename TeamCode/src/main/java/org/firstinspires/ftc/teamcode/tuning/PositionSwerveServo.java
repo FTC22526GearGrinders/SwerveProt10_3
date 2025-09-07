@@ -41,6 +41,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.drive.PIDControllerFRC;
+import org.firstinspires.ftc.teamcode.drive.SwerveDriveConstants;
 import org.firstinspires.ftc.teamcode.utils.RollingAverage;
 
 /*
@@ -67,7 +68,7 @@ public class PositionSwerveServo extends LinearOpMode {
 
     public static double DEADBANDVOLTS = .001;
 
-    static double targetAngle = 170;
+    static double targetAngle = 10;
 
     public static double KPVolts = .006;
     public static double KIVolts = .0;
@@ -91,7 +92,7 @@ public class PositionSwerveServo extends LinearOpMode {
     private double voltsError;
     private double voltsAverage;
     private double targetVolts = 1;
-    private double targetAngleWrapped;
+    public double targetAngleWrapped;
 
     private int modSel;
     private int numberOfMdules = 2;
@@ -107,6 +108,7 @@ public class PositionSwerveServo extends LinearOpMode {
         voltsController = new PIDControllerFRC(KPVolts, KIVolts, KDVolts);
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
+        servo.setDirection(Servo.Direction.REVERSE);
         waitForStart();
 
 
@@ -187,9 +189,10 @@ public class PositionSwerveServo extends LinearOpMode {
             if (targetAngle < 0) targetAngleWrapped += 180;
 
 
-            targetVolts = 1.9 + (3 - 1.9) * targetAngleWrapped / 180;
+            targetVolts = SwerveDriveConstants.voltsAtMid[0] + (1 / SwerveDriveConstants.degreesPerVolt[0]) * targetAngleWrapped;
 
-            voltsError = targetVolts - voltsAverage;
+
+            voltsError = targetVolts - volts;
 
             double voltsErrorPID = voltsController.calculate(voltsAverage, targetVolts);
 

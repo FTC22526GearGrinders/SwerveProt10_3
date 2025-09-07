@@ -26,7 +26,7 @@ import org.firstinspires.ftc.teamcode.utils.Units;
 public class SwerveModuleServo extends SubsystemBase {
     public static double DEADBANDVOLTS = .01;
     private final PIDControllerFRC driveController = new PIDControllerFRC(0.01, 0, 0, .02);
-    private final PIDControllerFRC angleController = new PIDControllerFRC(.015, 0.0, 0., 0.02);
+    private final PIDControllerFRC angleController = new PIDControllerFRC(.1, 0.0, 0.00, 0.02);
     private final double acceLimit = 5;
     private final double powerLimit = 1;
     private final double ks = 0;
@@ -78,7 +78,10 @@ public class SwerveModuleServo extends SubsystemBase {
     //from logs and excel pot volts = 2.109 * servo position + .6102
     //servo position = (pot volts -.6102) / 2.109
     private RollingAverage ra;
-    private double targetVolts;
+    public double targetVolts;
+    private double position;
+    public double targetAngleWrapped;
+    public double voltsErrorPID;
 
     public SwerveModuleServo(SwerveModuleConfig config, CommandOpMode opMode) {
         driveMotor = opMode.hardwareMap.get(DcMotorEx.class, config.driveMotorName);
@@ -238,30 +241,34 @@ public class SwerveModuleServo extends SubsystemBase {
     }
 
 
-    public void setAngleFromLUT(SwerveModuleState state) {
+    public void setAngleFromVolts(SwerveModuleState state) {
 
         double targetAngle = state.angle.getDegrees();
 
-        double targetAngleWrapped = MathUtils.clamp(targetAngle, -180, 180);
+        targetAngleWrapped = targetAngle  ;
 
-        if (targetAngleWrapped < 0) targetAngleWrapped += 180;
-
-        targetAngleWrapped = MathUtils.clamp(targetAngleWrapped, 0.01, 180);
-
-        double voltsAverage = ra.getAverage();
-
-        targetVolts = getVoltsFromAngle(targetAngleWrapped);
-
-        double voltsError = angleController.calculate(voltsAverage, targetVolts);
+        // if (targetAngle < 0) targetAngleWrapped += 90;
 
 
-        double clampedVE = MathUtils.clamp(voltsError, -.2, .2);
+        targetVolts = SwerveDriveConstants.voltsAtMid[0] + (1 / SwerveDriveConstants.degreesPerVolt[0]) * targetAngleWrapped;
 
-        if (!atPositionVolts(DEADBANDVOLTS))
-            servoCmd += clampedVE;
-        double positionError = servoCmd - angleServo.getPosition();
 
-        setServoPosition(servoCmd);
+        double voltsError = targetVolts - volts;
+
+        voltsErrorPID = angleController.calculate(getPotVolts(), targetVolts);
+
+
+        double clampedVE = MathUtils.clamp(voltsErrorPID, -.5, .5);
+
+
+        // if (!atPositionVolts(DEADBANDVOLTS)) {
+        position += clampedVE;
+
+
+        position = MathUtils.clamp(position, 0, 1);
+
+        // Set the servo to the new position and pause;
+        angleServo.setPosition(position);
     }
 
     public double getVoltsFromAngle(double angle) {
@@ -331,9 +338,8 @@ public class SwerveModuleServo extends SubsystemBase {
             setSpeedOpenLoop(newState);
         else
             setSpeedClosedLoop(newState);
-//
-//        setAngleTrapezoid(newState);
-        setAngleFromLUT(newState);
+
+        setAngleFromVolts(newState);
 
     }
 
@@ -351,7 +357,7 @@ public class SwerveModuleServo extends SubsystemBase {
 
     public double getWheelAngleDeg() {
         double diff = getPotVolts() - SwerveDriveConstants.voltsAtMid[moduleNumber];
-        potAngle = SwerveDriveConstants.midAngleDegrees + (diff * SwerveDriveConstants.degreesPerVolt);
+        potAngle = SwerveDriveConstants.midAngleDegrees + (diff * SwerveDriveConstants.degreesPerVolt[moduleNumber]);
         return potAngle;
     }
 

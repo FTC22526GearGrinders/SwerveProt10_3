@@ -80,9 +80,12 @@ public class SwerveDriveServoOpMode extends CommandOpMode {
 
             double wheelAngle = swerveDrive.modules[0].getWheelAngleDeg();
             telemetry.addData("A0PotVolts", "%5.3f",swerveDrive.modules[0].getPotVolts());
-            telemetry.addData("A0FromPot", "%5.3f",wheelAngle);
-            telemetry.addData("Speed0", "%5.3f",swerveDrive.modules[0].newState.speedMetersPerSecond);
-            telemetry.addData("A0Tgt", "%5.3f",swerveDrive.modules[0].newState.angle.getDegrees());
+          //  telemetry.addData("A0FromPot", "%5.3f",wheelAngle);
+          //  telemetry.addData("Speed0", "%5.3f",swerveDrive.modules[0].newState.speedMetersPerSecond);
+            telemetry.addData("Tgt", "%5.3f",swerveDrive.modules[0].newState.angle.getDegrees());
+            telemetry.addData("TgtWrap", "%5.3f",swerveDrive.modules[0].targetAngleWrapped);
+            telemetry.addData("VEPID", "%5.3f",swerveDrive.modules[0].voltsErrorPID);
+
             telemetry.addData("A0SVPos", "%5.3f",swerveDrive.modules[0].getServoPosition());
             telemetry.addData("Yaw", "%5.3f",swerveDrive.getHeading().getDegrees());
 

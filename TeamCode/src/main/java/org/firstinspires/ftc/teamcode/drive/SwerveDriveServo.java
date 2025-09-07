@@ -36,7 +36,7 @@ public class SwerveDriveServo extends SubsystemBase {
 
     public SwerveDriveServo(CommandOpMode opMode) {
         SwerveModuleConfig fl = new SwerveModuleConfig(0,
-                "driveMotor1", "angleServo1", "angleInput1", 0, DcMotorSimple.Direction.REVERSE);
+                "driveMotor1", "angleServo1", "angleInput1", -0.005, DcMotorSimple.Direction.REVERSE);
 
         SwerveModuleConfig fr = new SwerveModuleConfig(1,
                 "driveMotor2", "angleServo2", "angleInput2", 0, DcMotorSimple.Direction.REVERSE);

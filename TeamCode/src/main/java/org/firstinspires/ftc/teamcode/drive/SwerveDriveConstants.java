@@ -57,14 +57,13 @@ public final class SwerveDriveConstants {
     public static double minServoPosition = .01;
     public static double maxServoPosition = .99;
     public static double midServoPosition = .5;
-    public static double[] voltsAtMin = {.60, .60, .640, .640};
-    public static double[] voltsAtMax = {2.706, 2.688, 2.64, 2.66};
-    public static double[] voltsAtMid = {1.655, 1.643, 1.6, 1.6};
+    public static double[] voltsAtMin = {.826, .60, .640, .640};
+    public static double[] voltsAtMax = {2.492, 2.688, 2.64, 2.66};
+    public static double[] voltsAtMid = {1.626, 1.643, 1.6, 1.6};
 
-    public static double degreesPerVolt = 109;//360. / 3.3;//109.1
+    public static double degreesPerVolt[] =
 
-
-    public static double voltsPerDegree = 1. / degreesPerVolt;//.0092 = 9 milliVolts
+            {180 / (voltsAtMax[0] - voltsAtMin[0]), 180 / (voltsAtMax[1] - voltsAtMin[1]), 180 / (voltsAtMax[2] - voltsAtMin[2]), 180 / (voltsAtMax[3] - voltsAtMin[3])};
 
 
     public static double minAngleDegrees = -servoRangeSetting / 2;
@@ -76,7 +75,7 @@ public final class SwerveDriveConstants {
     public static double servoPositionPerDegree = 1. / servoRangeSetting;
 
 
-    }
+}
 
 
 
